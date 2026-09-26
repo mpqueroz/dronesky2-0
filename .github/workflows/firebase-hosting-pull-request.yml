@@ -1,0 +1,22 @@
+# En cada pull request publica una vista previa temporal y deja el enlace
+# como comentario en el PR, sin tocar la página publicada.
+name: Vista previa en Firebase Hosting
+
+on: pull_request
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  vista_previa:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DANIEL_TAPIA_ABOGADO }}
+          projectId: daniel-tapia-abogado
