@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Filmación y fotografía aérea con drones para eventos deportivos, propiedades y eventos. Piloto con credencial DGAC.">
+<title>Cielo Abierto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1F3EF;
+  --surface:#FFFFFF;
+  --ink:#11181D;
+  --muted:#56626A;
+  --line:#D6DBD6;
+  --accent:#D99A00;
+  --accent-ink:#11181D;
+  --sky:#2C6A89;
+  --hud:#F5C542;
+  --feed-bg:#0B1115;
+  --feed-ink:#E9EEEA;
+  --feed-muted:#8FA0A8;
+  --display:"Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1417;
+    --surface:#151D21;
+    --ink:#E6EBE7;
+    --muted:#96A3A9;
+    --line:#26323A;
+    --accent:#F2B31E;
+    --accent-ink:#11181D;
+    --sky:#72B5D4;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1417;
+  --surface:#151D21;
+  --ink:#E6EBE7;
+  --muted:#96A3A9;
+  --line:#26323A;
+  --accent:#F2B31E;
+  --accent-ink:#11181D;
+  --sky:#72B5D4;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1160px;margin:0 auto;padding-inline:20px}
+h1,h2,h3{font-family:var(--display);font-stretch:125%;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h2{font-size:clamp(28px,4.4vw,46px);font-weight:800;line-height:1.05}
+h3{font-size:19px;font-weight:700;font-stretch:110%}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--sky)}
+.lead{color:var(--muted);max-width:60ch;font-size:17px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+/* NAV */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--feed-bg) 88%,transparent);backdrop-filter:blur(10px);color:var(--feed-ink);border-bottom:1px solid rgba(255,255,255,.07)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-stretch:125%;font-weight:800;font-size:17px;letter-spacing:.02em}
+.brand svg{width:26px;height:26px;color:var(--hud)}
+.nav-links{display:flex;gap:22px;font-size:14px}
+.nav-links a{text-decoration:none;color:var(--feed-muted)}
+.nav-links a:hover{color:var(--feed-ink)}
+.nav-cta{background:var(--hud);color:#11181D;text-decoration:none;font-weight:600;font-size:14px;padding:8px 14px;border-radius:999px;white-space:nowrap}
+@media (max-width:760px){.nav-links{display:none}}
+
+/* HERO: la "transmisión en vivo" del drone */
+.hero{position:relative;background:var(--feed-bg);color:var(--feed-ink);overflow:hidden}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-inner{position:relative;padding-block:clamp(56px,11vw,120px) clamp(64px,10vw,112px)}
+.hud{position:absolute;inset:18px;pointer-events:none;font-family:var(--mono);font-size:12px;color:var(--feed-muted);letter-spacing:.06em}
+.hud .c{position:absolute;width:26px;height:26px;border-color:rgba(245,197,66,.7);border-style:solid}
+.hud .tl{top:0;left:0;border-width:2px 0 0 2px}.hud .tr{top:0;right:0;border-width:2px 2px 0 0}
+.hud .bl{bottom:0;left:0;border-width:0 0 2px 2px}.hud .br{bottom:0;right:0;border-width:0 2px 2px 0}
+.hud .t{position:absolute;top:6px;left:40px;right:40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hud .b{position:absolute;bottom:6px;left:40px;right:40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.rec{color:#FF5A4E}
+.rec::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF5A4E;margin-right:6px;vertical-align:1px;animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.hud-hide-sm{display:inline}
+@media (max-width:560px){.hud-hide-sm{display:none}.hero-inner{padding-bottom:88px}}
+.hero h1{font-size:clamp(38px,5.6vw,78px);font-weight:900;line-height:.98}
+.hero h1 em{font-style:normal;color:var(--hud)}
+.hero .sub{margin-top:22px;max-width:52ch;font-size:clamp(16px,1.9vw,19px);color:#C9D3D2}
+.hero .ctas{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;text-decoration:none;padding:13px 20px;border-radius:999px;font-size:15px;border:1px solid transparent;cursor:pointer;font-family:var(--body)}
+.btn-primary{background:var(--hud);color:#11181D}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-ghost{border-color:rgba(233,238,234,.35);color:var(--feed-ink)}
+.btn-ghost:hover{border-color:var(--feed-ink)}
+.cred{margin-top:34px;display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px;color:var(--feed-muted);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;background:rgba(11,17,21,.55)}
+.cred b{color:var(--feed-ink);font-weight:500}
+
+/* SECCIONES */
+section.block{padding-block:clamp(64px,9vw,112px)}
+.head{display:grid;gap:14px;margin-bottom:40px}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:980px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.grid-4{grid-template-columns:1fr}}
+
+.servicio{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.servicio .ic{width:44px;height:44px;border-radius:12px;background:color-mix(in srgb,var(--sky) 14%,transparent);color:var(--sky);display:grid;place-items:center}
+.servicio .ic svg{width:22px;height:22px}
+.servicio p{color:var(--muted);font-size:15px}
+.servicio ul{margin:4px 0 0;padding:0;list-style:none;display:grid;gap:4px;font-size:14px}
+.servicio li::before{content:"— ";color:var(--accent)}
+
+/* Seguridad y normativa */
+.norma{background:var(--feed-bg);color:var(--feed-ink)}
+.norma .eyebrow{color:var(--hud)}
+.norma .lead{color:#AEBBBF}
+.norma-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(28px,5vw,64px);align-items:start}
+@media (max-width:860px){.norma-grid{grid-template-columns:1fr}}
+.checks{display:grid;gap:0;border-top:1px solid rgba(255,255,255,.1)}
+.check{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.check svg{width:22px;height:22px;color:var(--hud);margin-top:3px}
+.check strong{display:block;font-family:var(--display);font-stretch:110%;font-weight:700;font-size:17px}
+.check span{color:#AEBBBF;font-size:15px}
+.licencia{border:1px solid rgba(245,197,66,.45);border-radius:18px;padding:24px;background:linear-gradient(160deg,rgba(245,197,66,.08),rgba(245,197,66,0) 60%);font-family:var(--mono);font-size:13px;display:grid;gap:14px}
+.licencia .fila{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed rgba(255,255,255,.14);padding-bottom:10px}
+.licencia .fila:last-child{border-bottom:0;padding-bottom:0}
+.licencia .k{color:var(--feed-muted);text-transform:uppercase;letter-spacing:.08em;font-size:11.5px}
+.licencia .v{color:var(--feed-ink);text-align:right}
+.licencia .sello{font-family:var(--display);font-stretch:125%;font-weight:800;font-size:22px;color:var(--hud);letter-spacing:.02em}
+
+/* Proceso (secuencia real) */
+.pasos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;counter-reset:paso}
+@media (max-width:980px){.pasos{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.pasos{grid-template-columns:1fr}}
+.paso{border-top:2px solid var(--ink);padding-top:16px;display:grid;gap:8px}
+.paso .n{font-family:var(--mono);font-size:13px;color:var(--sky)}
+.paso p{color:var(--muted);font-size:15px}
+
+/* Portafolio */
+.port{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.port{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.port{grid-template-columns:1fr}}
+.toma{position:relative;aspect-ratio:16/10;max-width:100%;border-radius:16px;overflow:hidden;background:var(--feed-bg);color:var(--feed-ink)}
+.toma canvas{position:absolute;inset:0;width:100%;height:100%}
+.toma .meta{position:absolute;left:14px;right:14px;bottom:12px;display:flex;justify-content:space-between;align-items:end;gap:8px}
+.toma .meta strong{font-family:var(--display);font-stretch:115%;font-size:16px}
+.toma .meta span{font-family:var(--mono);font-size:11.5px;color:var(--feed-muted)}
+.toma .play{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;background:rgba(11,17,21,.7);border:1px solid rgba(255,255,255,.15);padding:4px 8px;border-radius:999px}
+.nota{margin-top:14px;font-size:13px;color:var(--muted)}
+
+/* Contacto */
+.contacto-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:clamp(24px,5vw,56px)}
+@media (max-width:860px){.contacto-grid{grid-template-columns:1fr}}
+.canal{display:grid;gap:4px;padding:16px 0;border-bottom:1px solid var(--line)}
+.canal .k{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.canal .v{font-size:18px;font-weight:600;user-select:all}
+form{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px;display:grid;gap:14px}
+.fila2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){.fila2{grid-template-columns:1fr}}
+label{display:grid;gap:6px;font-size:14px;font-weight:500}
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 12px;width:100%}
+textarea{min-height:110px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--sky);outline-offset:1px}
+form .btn-primary{background:var(--accent);color:var(--accent-ink);justify-self:start}
+.aviso{font-size:14px;border-radius:12px;padding:12px 14px;background:color-mix(in srgb,var(--sky) 12%,transparent);color:var(--ink)}
+
+footer{border-top:1px solid var(--line);padding-block:28px;color:var(--muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+
+/* Dron de la portada */
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:24px;align-items:center}
+.dron{width:100%;max-width:520px;justify-self:center;filter:drop-shadow(0 30px 40px rgba(0,0,0,.45))}
+.dron svg{width:100%;height:auto;display:block;overflow:visible}
+.dron .flota{animation:flotar 5s ease-in-out infinite}
+.dron .helice{transform-box:fill-box;transform-origin:center;animation:girar .12s linear infinite}
+.dron .helice.b{animation-delay:-.06s}
+.dron .led{animation:blink 1.4s steps(2) infinite}
+@keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes girar{0%{transform:scaleX(1)}50%{transform:scaleX(.25)}100%{transform:scaleX(1)}}
+@media (max-width:860px){
+  .hero-grid{grid-template-columns:1fr}
+  .dron{order:-1;max-width:260px;margin-bottom:-8px}
+}
+
+/* Botón flotante de WhatsApp */
+.wsp{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:10px;
+  background:var(--hud);color:#11181D;text-decoration:none;font-weight:600;font-size:15px;padding:12px 18px 12px 14px;border-radius:999px;
+  box-shadow:0 10px 28px rgba(11,17,21,.35),0 0 0 4px rgba(245,197,66,.18)}
+.wsp svg{width:24px;height:24px;flex:0 0 auto}
+.wsp:hover{filter:brightness(1.05);transform:translateY(-1px)}
+@media (max-width:560px){.wsp span{display:none}.wsp{padding:14px;right:14px}}
+
+@media (prefers-reduced-motion: reduce){
+  .rec::before,.dron .flota,.dron .helice,.dron .led{animation:none}
+}
+</style>
+
+</head>
+<body>
+<nav class="nav" aria-label="Principal">
+  <div class="wrap">
+    <a class="brand" href="#inicio" aria-label="Cielo Abierto, inicio">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="7" cy="7" r="4"/><circle cx="25" cy="7" r="4"/><circle cx="7" cy="25" r="4"/><circle cx="25" cy="25" r="4"/><path d="M10 10l4 4m8-4l-4 4m-8 8l4-4m8 4l-4-4"/><rect x="13" y="13" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+      CIELO ABIERTO
+    </a>
+    <div class="nav-links">
+      <a href="#servicios">Servicios</a>
+      <a href="#seguridad">Seguridad y DGAC</a>
+      <a href="#proceso">Cómo trabajamos</a>
+      <a href="#trabajos">Trabajos</a>
+    </div>
+    <a class="nav-cta" href="#contacto">Cotizar vuelo</a>
+  </div>
+</nav>
+
+<header class="hero" id="inicio">
+  <canvas id="terreno" aria-hidden="true"></canvas>
+  <div class="hud" aria-hidden="true">
+    <i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+    <div class="t"><span class="rec" id="rec">REC 00:00:00</span><span class="hud-hide-sm">4K · 60 FPS</span><span>BAT 87%</span></div>
+    <div class="b"><span id="alt">ALT 118 m</span><span class="hud-hide-sm">VEL 32 km/h</span><span>GPS −33.4489 −70.6693</span></div>
+  </div>
+  <div class="wrap hero-inner hero-grid">
+    <div>
+    <p class="eyebrow" style="color:var(--hud)">Filmación y fotografía aérea con drones</p>
+    <h1 style="margin-top:16px">Tu proyecto, <em>visto desde el cielo.</em></h1>
+    <p class="sub">Grabamos eventos deportivos, propiedades en venta y eventos de todo tipo con tomas aéreas en 4K. Vuelos planificados, seguros y coordinados con la DGAC.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#contacto">Cotizar un vuelo</a>
+      <a class="btn btn-ghost" href="#servicios">Ver servicios</a>
+    </div>
+    <div class="cred">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--hud)"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+      <span>Piloto con <b>credencial DGAC</b> · Operación con seguro vigente</span>
+    </div>
+    </div>
+    <div class="dron" aria-hidden="true">
+      <svg viewBox="0 0 420 300" fill="none">
+        <defs>
+          <linearGradient id="cono" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#F5C542" stop-opacity=".28"/>
+            <stop offset="1" stop-color="#F5C542" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="casco" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3A4A52"/>
+            <stop offset="1" stop-color="#1A2429"/>
+          </linearGradient>
+        </defs>
+        <g class="flota">
+          <!-- cono de visión de la cámara -->
+          <path d="M210 168 L120 300 L300 300 Z" fill="url(#cono)"/>
+          <!-- brazos traseros (más altos y delgados por perspectiva) -->
+          <path d="M175 98 L112 74 M245 98 L308 74" stroke="#2C3A41" stroke-width="9" stroke-linecap="round"/>
+          <rect x="100" y="62" width="24" height="16" rx="4" fill="#26333A"/>
+          <rect x="296" y="62" width="24" height="16" rx="4" fill="#26333A"/>
+          <ellipse class="helice" cx="112" cy="58" rx="46" ry="4" fill="#8FA0A8" fill-opacity=".45"/>
+          <ellipse class="helice b" cx="308" cy="58" rx="46" ry="4" fill="#8FA0A8" fill-opacity=".45"/>
+          <!-- patas -->
+          <path d="M178 128 L160 176 M242 128 L260 176" stroke="#26333A" stroke-width="6" stroke-linecap="round"/>
+          <path d="M146 177 H176 M244 177 H274" stroke="#3A4A52" stroke-width="6" stroke-linecap="round"/>
+          <!-- cuerpo -->
+          <rect x="160" y="88" width="100" height="46" rx="18" fill="url(#casco)" stroke="#56707B" stroke-width="1.5"/>
+          <path d="M176 96 H244" stroke="#8FA0A8" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+          <!-- brazos delanteros -->
+          <path d="M168 112 L62 100 M252 112 L358 100" stroke="#33434B" stroke-width="12" stroke-linecap="round"/>
+          <rect x="46" y="86" width="32" height="20" rx="5" fill="#2C3A41" stroke="#56707B" stroke-width="1"/>
+          <rect x="342" y="86" width="32" height="20" rx="5" fill="#2C3A41" stroke="#56707B" stroke-width="1"/>
+          <circle class="led" cx="62" cy="110" r="3.5" fill="#FF5A4E"/>
+          <circle cx="358" cy="110" r="3.5" fill="#5BD08A"/>
+          <ellipse class="helice b" cx="62" cy="80" rx="60" ry="5" fill="#C9D3D2" fill-opacity=".5"/>
+          <ellipse class="helice" cx="358" cy="80" rx="60" ry="5" fill="#C9D3D2" fill-opacity=".5"/>
+          <!-- gimbal y cámara -->
+          <rect x="199" y="132" width="22" height="12" rx="3" fill="#26333A"/>
+          <circle cx="210" cy="156" r="20" fill="#1A2429" stroke="#56707B" stroke-width="1.5"/>
+          <circle cx="210" cy="156" r="11" fill="#0B1115" stroke="#F5C542" stroke-width="2.5"/>
+          <circle cx="206" cy="152" r="3" fill="#E9EEEA" fill-opacity=".7"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="block" id="servicios">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Servicios</p>
+        <h2>Una perspectiva que no se logra desde el suelo</h2>
+        <p class="lead">Cada vuelo se diseña para lo que necesitas mostrar: la emoción de una competencia, el entorno de una propiedad o la escala de un evento.</p>
+      </div>
+      <div class="grid-4">
+        <article class="servicio">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 1 0 18M3 12h18M5.5 6.5c4 2 9 2 13 0M5.5 17.5c4-2 9-2 13 0"/></svg></div>
+          <h3>Eventos deportivos</h3>
+          <p>Seguimiento de corredores, ciclistas y competencias al aire libre.</p>
+          <ul><li>Maratones y trail</li><li>Ciclismo y motor</li><li>Surf y deportes náuticos</li></ul>
+        </article>
+        <article class="servicio">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></div>
+          <h3>Propiedades y corretaje</h3>
+          <p>Casas, parcelas y proyectos inmobiliarios con su entorno completo.</p>
+          <ul><li>Video de venta</li><li>Fotos aéreas para portales</li><li>Deslindes y accesos</li></ul>
+        </article>
+        <article class="servicio">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8 9.5 8z"/></svg></div>
+          <h3>Eventos y celebraciones</h3>
+          <p>Matrimonios, eventos corporativos, festivales y lanzamientos.</p>
+          <ul><li>Tomas de apertura</li><li>Fotos grupales aéreas</li><li>Video resumen</li></ul>
+        </article>
+        <article class="servicio">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 20h18"/><path d="M5 20V9l7-4 7 4v11"/><path d="M9 20v-5h6v5"/><path d="M12 5V2"/></svg></div>
+          <h3>Empresas y obras</h3>
+          <p>Avance de obras, registro de terrenos, turismo y material para marcas.</p>
+          <ul><li>Seguimiento de obra</li><li>Contenido para redes</li><li>Tomas de paisaje</li></ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="block norma" id="seguridad">
+    <div class="wrap norma-grid">
+      <div>
+        <div class="head">
+          <p class="eyebrow">Seguridad y normativa</p>
+          <h2>Volamos con permiso, con plan y con seguro</h2>
+          <p class="lead">Un vuelo sobre personas, calles o propiedades exige más que un buen drone. Cada operación se planifica y se coordina con la autoridad antes de despegar.</p>
+        </div>
+        <div class="checks">
+          <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><div><strong>Piloto con credencial DGAC</strong><span>Licencia vigente para operar aeronaves pilotadas a distancia.</span></div></div>
+          <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><div><strong>Coordinación con la DGAC</strong><span>Solicitamos las autorizaciones de vuelo cuando el lugar o el evento lo requieren.</span></div></div>
+          <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><strong>Plan de vuelo y evaluación de riesgos</strong><span>Revisamos zona, clima, espacio aéreo y público antes de cada operación.</span></div></div>
+          <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><div><strong>Control en todo momento</strong><span>Protocolos de seguridad en eventos y seguro de responsabilidad civil.</span></div></div>
+        </div>
+      </div>
+      <aside class="licencia" aria-label="Credencial del piloto">
+        <div class="sello">CREDENCIAL DGAC</div>
+        <div class="fila"><span class="k">Piloto</span><span class="v">[Nombre del piloto]</span></div>
+        <div class="fila"><span class="k">N° credencial</span><span class="v">[Por completar]</span></div>
+        <div class="fila"><span class="k">Vigencia</span><span class="v">[Por completar]</span></div>
+        <div class="fila"><span class="k">Seguro RC</span><span class="v">Vigente</span></div>
+        <div class="fila"><span class="k">Equipo</span><span class="v">[Modelo del drone]</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="block" id="proceso">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Cómo trabajamos</p>
+        <h2>Del primer mensaje al video terminado</h2>
+      </div>
+      <div class="pasos">
+        <div class="paso"><span class="n">01 · Cotización</span><h3>Nos cuentas tu idea</h3><p>Lugar, fecha y qué quieres mostrar. Te enviamos una propuesta con valor y plazos.</p></div>
+        <div class="paso"><span class="n">02 · Planificación</span><h3>Plan de vuelo y permisos</h3><p>Revisamos la zona y gestionamos con la DGAC lo que el vuelo requiera.</p></div>
+        <div class="paso"><span class="n">03 · Vuelo</span><h3>Grabación en terreno</h3><p>Tomas en 4K con protocolos de seguridad y control del área.</p></div>
+        <div class="paso"><span class="n">04 · Entrega</span><h3>Edición y entrega</h3><p>Material editado y listo para redes, portales inmobiliarios o pantalla grande.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="trabajos" style="padding-top:0">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Trabajos</p>
+        <h2>Algunas tomas</h2>
+      </div>
+      <div class="port">
+        <figure class="toma" style="margin:0"><canvas data-semilla="1" aria-hidden="true"></canvas><span class="play">▶ VIDEO</span><figcaption class="meta"><strong>Maratón costera</strong><span>ALT 90 m</span></figcaption></figure>
+        <figure class="toma" style="margin:0"><canvas data-semilla="2" aria-hidden="true"></canvas><span class="play">▶ VIDEO</span><figcaption class="meta"><strong>Casa en venta · Parcela</strong><span>ALT 60 m</span></figcaption></figure>
+        <figure class="toma" style="margin:0"><canvas data-semilla="3" aria-hidden="true"></canvas><span class="play">▶ VIDEO</span><figcaption class="meta"><strong>Matrimonio en viñedo</strong><span>ALT 45 m</span></figcaption></figure>
+      </div>
+      <p class="nota">Espacio para los videos reales del piloto: aquí van sus trabajos, con reproducción en la misma página.</p>
+    </div>
+  </section>
+
+  <section class="block" id="contacto" style="padding-top:0">
+    <div class="wrap contacto-grid">
+      <div>
+        <div class="head" style="margin-bottom:18px">
+          <p class="eyebrow">Contacto</p>
+          <h2>Cuéntanos qué quieres grabar</h2>
+          <p class="lead">Respondemos con una propuesta en menos de 24 horas.</p>
+        </div>
+        <div class="canal"><span class="k">WhatsApp</span><span class="v">+56 9 0000 0000</span></div>
+        <div class="canal"><span class="k">Correo</span><span class="v">contacto@cieloabierto.cl</span></div>
+        <div class="canal"><span class="k">Zona de cobertura</span><span class="v">Región Metropolitana y regiones</span></div>
+      </div>
+      <form id="cotizar" novalidate>
+        <div class="fila2">
+          <label for="f-nombre">Nombre<input id="f-nombre" name="nombre" autocomplete="name" required></label>
+          <label for="f-telefono">Teléfono<input id="f-telefono" name="telefono" type="tel" autocomplete="tel"></label>
+        </div>
+        <div class="fila2">
+          <label for="f-tipo">Tipo de trabajo
+            <select id="f-tipo" name="tipo">
+              <option>Evento deportivo</option>
+              <option>Propiedad en venta</option>
+              <option>Evento o celebración</option>
+              <option>Empresa u obra</option>
+              <option>Otro</option>
+            </select>
+          </label>
+          <label for="f-fecha">Fecha aproximada<input id="f-fecha" name="fecha" type="date"></label>
+        </div>
+        <label for="f-detalle">Detalle<textarea id="f-detalle" name="detalle" placeholder="Lugar, duración y qué te gustaría mostrar"></textarea></label>
+        <button class="btn btn-primary" type="submit">Pedir cotización</button>
+        <p class="aviso" id="f-aviso" hidden></p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<a class="wsp" href="https://wa.me/56900000000?text=Hola%2C%20quiero%20cotizar%20una%20grabaci%C3%B3n%20con%20dron" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.22-8.23 8.22zm4.52-6.16c-.25-.12-1.46-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg>
+  <span>Cotiza por WhatsApp</span>
+</a>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Cielo Abierto · Filmación aérea con drones</span>
+    <span>Operaciones coordinadas con la DGAC</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const reducir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Terreno visto desde arriba: curvas de nivel generadas con ruido suave,
+  // que se desplazan lento como si el drone avanzara.
+  function ruido(semilla){
+    const p = [];
+    let s = semilla * 9301 + 49297;
+    for(let i = 0; i < 256; i++){ s = (s * 9301 + 49297) % 233280; p.push(s / 233280); }
+    const v = (x, y) => p[((x & 15) * 16 + (y & 15)) & 255];
+    const suave = t => t * t * (3 - 2 * t);
+    return (x, y) => {
+      const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+      const a = v(xi, yi), b = v(xi + 1, yi), c = v(xi, yi + 1), d = v(xi + 1, yi + 1);
+      const u = suave(xf), w = suave(yf);
+      return a + (b - a) * u + (c - a) * w + (a - b - c + d) * u * w;
+    };
+  }
+
+  function dibujarTerreno(canvas, opciones){
+    const ctx = canvas.getContext("2d");
+    const n = ruido(opciones.semilla || 7);
+    const campo = (x, y) => n(x, y) * .6 + n(x * 2.1 + 5, y * 2.1) * .3 + n(x * 4.3, y * 4.3 + 9) * .1;
+    let ancho = 0, alto = 0, dpr = 1;
+    function medir(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      ancho = canvas.clientWidth; alto = canvas.clientHeight;
+      canvas.width = Math.max(1, ancho * dpr); canvas.height = Math.max(1, alto * dpr);
+    }
+    function frame(t){
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = opciones.fondo; ctx.fillRect(0, 0, ancho, alto);
+      const paso = opciones.paso || 14;
+      const escala = opciones.escala || 0.012;
+      const off = t * (opciones.velocidad || 0.00002);
+      const niveles = opciones.niveles || 9;
+      for(let k = 1; k < niveles; k++){
+        const umbral = k / niveles;
+        ctx.strokeStyle = k % 3 === 0 ? opciones.lineaFuerte : opciones.linea;
+        ctx.lineWidth = k % 3 === 0 ? 1.2 : .8;
+        ctx.beginPath();
+        for(let y = 0; y < alto + paso; y += paso){
+          for(let x = 0; x < ancho + paso; x += paso){
+            const f = (px, py) => campo(px * escala + off * 60, py * escala + off * 25) - umbral;
+            const a = f(x, y), b = f(x + paso, y), c = f(x + paso, y + paso), d = f(x, y + paso);
+            const pts = [];
+            if((a > 0) !== (b > 0)) pts.push([x + paso * a / (a - b), y]);
+            if((b > 0) !== (c > 0)) pts.push([x + paso, y + paso * b / (b - c)]);
+            if((c > 0) !== (d > 0)) pts.push([x + paso * (1 - c / (c - d)), y + paso]);
+            if((d > 0) !== (a > 0)) pts.push([x, y + paso * (1 - d / (d - a))]);
+            if(pts.length >= 2){ ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(pts[1][0], pts[1][1]); }
+          }
+        }
+        ctx.stroke();
+      }
+      if(opciones.mira){
+        const cx = ancho / 2, cy = alto / 2;
+        ctx.strokeStyle = "rgba(245,197,66,.55)"; ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(cx - 22, cy); ctx.lineTo(cx - 8, cy); ctx.moveTo(cx + 8, cy); ctx.lineTo(cx + 22, cy);
+        ctx.moveTo(cx, cy - 22); ctx.lineTo(cx, cy - 8); ctx.moveTo(cx, cy + 8); ctx.lineTo(cx, cy + 22);
+        ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.stroke();
+      }
+      // Viñeta para que el texto se lea sobre el terreno.
+      const g = ctx.createLinearGradient(0, 0, ancho, 0);
+      g.addColorStop(0, opciones.vineta); g.addColorStop(.65, "rgba(11,17,21,0)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, ancho, alto);
+    }
+    medir();
+    let visible = true;
+    const io = new IntersectionObserver(e => { visible = e[0].isIntersecting; });
+    io.observe(canvas);
+    function loop(t){ if(visible) frame(t); requestAnimationFrame(loop); }
+    if(reducir || !opciones.animar){ frame(0); } else { requestAnimationFrame(loop); }
+    window.addEventListener("resize", () => { medir(); frame(performance.now()); });
+  }
+
+  dibujarTerreno(document.getElementById("terreno"), {
+    semilla: 7, fondo: "#0B1115", linea: "rgba(143,160,168,.22)", lineaFuerte: "rgba(143,160,168,.42)",
+    vineta: "rgba(11,17,21,.92)", animar: true, mira: false, paso: 16, escala: .0065, niveles: 12, velocidad: .00003
+  });
+
+  const tonos = {
+    1: {fondo: "#0F2530", linea: "rgba(114,181,212,.28)", lineaFuerte: "rgba(114,181,212,.55)"},
+    2: {fondo: "#1B2417", linea: "rgba(170,196,120,.28)", lineaFuerte: "rgba(170,196,120,.55)"},
+    3: {fondo: "#2A1E14", linea: "rgba(242,179,30,.25)", lineaFuerte: "rgba(242,179,30,.5)"}
+  };
+  document.querySelectorAll(".toma canvas").forEach(c => {
+    const s = +c.dataset.semilla;
+    dibujarTerreno(c, Object.assign({semilla: s * 13, vineta: "rgba(11,17,21,.0)", paso: 10, escala: .02, niveles: 8, animar: false}, tonos[s]));
+  });
+
+  // Contador REC y altitud que varía levemente.
+  const inicio = Date.now();
+  const rec = document.getElementById("rec"), alt = document.getElementById("alt");
+  if(!reducir){
+    setInterval(() => {
+      const s = Math.floor((Date.now() - inicio) / 1000);
+      const hh = String(Math.floor(s / 3600)).padStart(2, "0"), mm = String(Math.floor(s / 60) % 60).padStart(2, "0"), ss = String(s % 60).padStart(2, "0");
+      rec.textContent = `REC ${hh}:${mm}:${ss}`;
+      alt.textContent = `ALT ${Math.round(118 + Math.sin(s / 4) * 3)} m`;
+    }, 1000);
+  }
+
+  // Formulario de muestra: todavía no envía mensajes.
+  document.getElementById("cotizar").addEventListener("submit", e => {
+    e.preventDefault();
+    const aviso = document.getElementById("f-aviso");
+    const nombre = document.getElementById("f-nombre").value.trim();
+    aviso.hidden = false;
+    aviso.textContent = nombre
+      ? `Gracias, ${nombre}. Esta es una versión de muestra: el formulario todavía no envía mensajes. En la versión final llegará directo al WhatsApp o correo del piloto.`
+      : "Escribe tu nombre para pedir la cotización.";
+  });
+})();
+</script>
+</body>
+</html>
