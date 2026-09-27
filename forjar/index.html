@@ -344,7 +344,7 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
       <div class="quick" id="foodRecent" aria-label="Alimentos recientes"></div>
       <div class="gridAuto">
         <div><label for="foodName">Alimento</label><input id="foodName" list="foodList" placeholder="Pollo, arroz, avena…" autocomplete="off"></div>
-        <div><label for="foodG">Cantidad</label><div class="unit"><input id="foodG" type="number" inputmode="decimal" min="1" placeholder="150"><span>g</span></div></div>
+        <div><label for="foodG">Cantidad</label><div class="unit"><input id="foodG" type="text" autocomplete="off" inputmode="decimal" min="1" placeholder="150"><span>g</span></div></div>
       </div>
       <datalist id="foodList"></datalist>
       <div class="hint" id="foodPreview" style="margin-top:8px"></div>
@@ -379,9 +379,9 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
       <datalist id="exList"></datalist>
       <div class="hint" id="exHint"></div>
       <div class="grid3">
-        <div class="field"><label for="exSets">Series</label><input id="exSets" type="number" inputmode="numeric" min="1" placeholder="4"></div>
-        <div class="field"><label for="exReps">Reps</label><input id="exReps" type="number" inputmode="numeric" min="1" placeholder="10"></div>
-        <div class="field"><label for="exKg">Peso</label><div class="unit"><input id="exKg" type="number" inputmode="decimal" min="0" step="0.5" placeholder="40"><span>kg</span></div></div>
+        <div class="field"><label for="exSets">Series</label><input id="exSets" type="text" autocomplete="off" inputmode="numeric" min="1" placeholder="4"></div>
+        <div class="field"><label for="exReps">Reps</label><input id="exReps" type="text" autocomplete="off" inputmode="numeric" min="1" placeholder="10"></div>
+        <div class="field"><label for="exKg">Peso</label><div class="unit"><input id="exKg" type="text" autocomplete="off" inputmode="decimal" min="0" step="0.5" placeholder="40"><span>kg</span></div></div>
       </div>
       <button class="btn" id="addEx">Registrar</button>
     </div>
@@ -429,7 +429,7 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
     <div class="card">
       <div class="chead"><h2><span class="dot"></span>Peso</h2><span class="meta" id="wMeta"></span></div>
       <div class="gridAuto">
-        <div class="unit"><input id="wIn" type="number" inputmode="decimal" step="0.1" placeholder="Peso de hoy" aria-label="Peso de hoy en kg"><span>kg</span></div>
+        <div class="unit"><input id="wIn" type="text" autocomplete="off" inputmode="decimal" step="0.1" placeholder="Peso de hoy" aria-label="Peso de hoy en kg"><span>kg</span></div>
         <button class="btn" id="addW">Anotar</button>
       </div>
       <div class="tiles" style="margin-top:14px">
@@ -472,16 +472,16 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
   <div class="field"><label for="bDate">Fecha</label><input id="bDate" type="date"></div>
   <div class="fgroup">Composición</div>
   <div class="grid2">
-    <div class="field"><label for="bPeso">Peso</label><div class="unit"><input id="bPeso" type="number" inputmode="decimal" step="0.1"><span>kg</span></div></div>
-    <div class="field"><label for="bGrasa">Grasa corporal</label><div class="unit"><input id="bGrasa" type="number" inputmode="decimal" step="0.1"><span>%</span></div></div>
-    <div class="field"><label for="bMusc">Masa muscular</label><div class="unit"><input id="bMusc" type="number" inputmode="decimal" step="0.1"><span>%</span></div></div>
-    <div class="field"><label for="bAgua">Agua corporal</label><div class="unit"><input id="bAgua" type="number" inputmode="decimal" step="0.1"><span>%</span></div></div>
+    <div class="field"><label for="bPeso">Peso</label><div class="unit"><input id="bPeso" type="text" autocomplete="off" inputmode="decimal" step="0.1"><span>kg</span></div></div>
+    <div class="field"><label for="bGrasa">Grasa corporal</label><div class="unit"><input id="bGrasa" type="text" autocomplete="off" inputmode="decimal" step="0.1"><span>%</span></div></div>
+    <div class="field"><label for="bMusc">Masa muscular</label><div class="unit"><input id="bMusc" type="text" autocomplete="off" inputmode="decimal" step="0.1"><span>%</span></div></div>
+    <div class="field"><label for="bAgua">Agua corporal</label><div class="unit"><input id="bAgua" type="text" autocomplete="off" inputmode="decimal" step="0.1"><span>%</span></div></div>
   </div>
   <div class="fgroup">Otros valores</div>
   <div class="grid3">
-    <div class="field"><label for="bVisc">Grasa visceral</label><input id="bVisc" type="number" inputmode="decimal" step="0.5" placeholder="nivel"></div>
-    <div class="field"><label for="bOsea">Masa ósea</label><div class="unit"><input id="bOsea" type="number" inputmode="decimal" step="0.1"><span>kg</span></div></div>
-    <div class="field"><label for="bTmb">Metab. basal</label><input id="bTmb" type="number" inputmode="numeric" placeholder="kcal"></div>
+    <div class="field"><label for="bVisc">Grasa visceral</label><input id="bVisc" type="text" autocomplete="off" inputmode="decimal" step="0.5" placeholder="nivel"></div>
+    <div class="field"><label for="bOsea">Masa ósea</label><div class="unit"><input id="bOsea" type="text" autocomplete="off" inputmode="decimal" step="0.1"><span>kg</span></div></div>
+    <div class="field"><label for="bTmb">Metab. basal</label><input id="bTmb" type="text" autocomplete="off" inputmode="numeric" placeholder="kcal"></div>
   </div>
   <div class="field"><label for="bNotas">Notas</label><textarea id="bNotas" placeholder="Opcional"></textarea></div>
   <div class="hint">Deja en blanco lo que tu balanza no mida.</div>
@@ -493,12 +493,12 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
   <div class="sh"><h2 id="sh-med-t">Nuevas medidas</h2><button class="x" data-close aria-label="Cerrar">✕</button></div>
   <div class="field"><label for="mDate">Fecha</label><input id="mDate" type="date"></div>
   <div class="grid2">
-    <div class="field"><label for="mBrazo">Brazo</label><div class="unit"><input id="mBrazo" type="number" inputmode="decimal" step="0.5"><span>cm</span></div></div>
-    <div class="field"><label for="mPecho">Pecho</label><div class="unit"><input id="mPecho" type="number" inputmode="decimal" step="0.5"><span>cm</span></div></div>
-    <div class="field"><label for="mCintura">Cintura</label><div class="unit"><input id="mCintura" type="number" inputmode="decimal" step="0.5"><span>cm</span></div></div>
-    <div class="field"><label for="mCadera">Cadera</label><div class="unit"><input id="mCadera" type="number" inputmode="decimal" step="0.5"><span>cm</span></div></div>
-    <div class="field"><label for="mMuslo">Muslo</label><div class="unit"><input id="mMuslo" type="number" inputmode="decimal" step="0.5"><span>cm</span></div></div>
-    <div class="field"><label for="mPant">Pantorrilla</label><div class="unit"><input id="mPant" type="number" inputmode="decimal" step="0.5"><span>cm</span></div></div>
+    <div class="field"><label for="mBrazo">Brazo</label><div class="unit"><input id="mBrazo" type="text" autocomplete="off" inputmode="decimal" step="0.5"><span>cm</span></div></div>
+    <div class="field"><label for="mPecho">Pecho</label><div class="unit"><input id="mPecho" type="text" autocomplete="off" inputmode="decimal" step="0.5"><span>cm</span></div></div>
+    <div class="field"><label for="mCintura">Cintura</label><div class="unit"><input id="mCintura" type="text" autocomplete="off" inputmode="decimal" step="0.5"><span>cm</span></div></div>
+    <div class="field"><label for="mCadera">Cadera</label><div class="unit"><input id="mCadera" type="text" autocomplete="off" inputmode="decimal" step="0.5"><span>cm</span></div></div>
+    <div class="field"><label for="mMuslo">Muslo</label><div class="unit"><input id="mMuslo" type="text" autocomplete="off" inputmode="decimal" step="0.5"><span>cm</span></div></div>
+    <div class="field"><label for="mPant">Pantorrilla</label><div class="unit"><input id="mPant" type="text" autocomplete="off" inputmode="decimal" step="0.5"><span>cm</span></div></div>
   </div>
   <div class="hint">Deja en blanco lo que no midas hoy.</div>
   <button class="btn" id="saveMed">Guardar medidas</button>
@@ -510,10 +510,10 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
   <div class="field"><label for="cfName">Nombre</label><input id="cfName" placeholder="Barra de proteína, marca X"></div>
   <div class="fgroup">Valores por 100 g</div>
   <div class="grid2">
-    <div class="field"><label for="cfKcal">Calorías</label><div class="unit"><input id="cfKcal" type="number" inputmode="decimal" min="0"><span>kcal</span></div></div>
-    <div class="field"><label for="cfProt">Proteína</label><div class="unit"><input id="cfProt" type="number" inputmode="decimal" min="0"><span>g</span></div></div>
-    <div class="field"><label for="cfCarb">Carbohidratos</label><div class="unit"><input id="cfCarb" type="number" inputmode="decimal" min="0"><span>g</span></div></div>
-    <div class="field"><label for="cfFat">Grasas</label><div class="unit"><input id="cfFat" type="number" inputmode="decimal" min="0"><span>g</span></div></div>
+    <div class="field"><label for="cfKcal">Calorías</label><div class="unit"><input id="cfKcal" type="text" autocomplete="off" inputmode="decimal" min="0"><span>kcal</span></div></div>
+    <div class="field"><label for="cfProt">Proteína</label><div class="unit"><input id="cfProt" type="text" autocomplete="off" inputmode="decimal" min="0"><span>g</span></div></div>
+    <div class="field"><label for="cfCarb">Carbohidratos</label><div class="unit"><input id="cfCarb" type="text" autocomplete="off" inputmode="decimal" min="0"><span>g</span></div></div>
+    <div class="field"><label for="cfFat">Grasas</label><div class="unit"><input id="cfFat" type="text" autocomplete="off" inputmode="decimal" min="0"><span>g</span></div></div>
   </div>
   <button class="btn" id="saveCustomFood">Guardar alimento</button>
 </div>
@@ -522,9 +522,9 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
   <div class="grab"></div>
   <div class="sh"><h2 id="sh-prof-t">Mi perfil</h2><button class="x" data-close aria-label="Cerrar">✕</button></div>
   <div class="grid2">
-    <div class="field"><label for="pPeso">Peso</label><div class="unit"><input id="pPeso" type="number" inputmode="decimal" step="0.1"><span>kg</span></div></div>
-    <div class="field"><label for="pAltura">Altura</label><div class="unit"><input id="pAltura" type="number" inputmode="numeric" placeholder="170"><span>cm</span></div></div>
-    <div class="field"><label for="pEdad">Edad</label><input id="pEdad" type="number" inputmode="numeric"></div>
+    <div class="field"><label for="pPeso">Peso</label><div class="unit"><input id="pPeso" type="text" autocomplete="off" inputmode="decimal" step="0.1"><span>kg</span></div></div>
+    <div class="field"><label for="pAltura">Altura</label><div class="unit"><input id="pAltura" type="text" autocomplete="off" inputmode="numeric" placeholder="170"><span>cm</span></div></div>
+    <div class="field"><label for="pEdad">Edad</label><input id="pEdad" type="text" autocomplete="off" inputmode="numeric"></div>
     <div class="field"><label for="pSexo">Sexo</label><select id="pSexo"><option value="h">Hombre</option><option value="m">Mujer</option></select></div>
   </div>
   <div class="field"><label for="pAct">Nivel de actividad</label>
@@ -719,9 +719,11 @@ async function pullCloud(){
   const dirty = getDirty();
   if(dirty.has('meta')) Object.assign(remote, plain(metaBody()));
   dirty.forEach(k=>{ if(k.startsWith('day:')){ const d = k.slice(4); if(state.days[d]) remote.days[d] = plain(state.days[d]); else delete remote.days[d]; } });
-  state = remote; saveLocal(); renderAll();
-  dirty.forEach(k=>flush(k));
-  if(!dirty.size) setSync('cloud');
+  state = remote; saveLocal();
+  if(repairState()) persist('meta');
+  renderAll();
+  getDirty().forEach(k=>flush(k));
+  if(!getDirty().size && !timers.size) setSync('cloud');
 }
 async function connectCloud(user){
   cloud = makeCloud(user.uid); setSync('saving');
@@ -733,7 +735,9 @@ async function connectCloud(user){
     const local = owner ? blank() : state;
     const mine = hasData(local);
     state = exists ? (mine ? mergeStates(local, remote) : remote) : local;
-    lsSet(SYNC_KEY, user.uid); lsSet(DIRTY_KEY, null); saveLocal(); renderAll();
+    lsSet(SYNC_KEY, user.uid); lsSet(DIRTY_KEY, null); saveLocal();
+    const repaired = repairState(); renderAll();
+    if(repaired && !mine) persist('meta');
     if(mine){
       const {sdk, db} = fb, keys = Object.keys(state.days);
       // en lotes de 400 (Firestore admite 500 escrituras por lote)
@@ -745,7 +749,7 @@ async function connectCloud(user){
       }
       toast(exists ? 'Tus datos de este teléfono se unieron a tu cuenta' : 'Tus datos se subieron a tu cuenta');
     }
-    setSync('cloud');
+    if(!timers.size && !getDirty().size) setSync('cloud');
   }catch(e){
     setSync(navigator.onLine ? 'error' : 'offline');
     if(e && e.code==='permission-denied') toast('La nube rechazó el acceso. Revisa las reglas de Firestore.');
@@ -1128,15 +1132,28 @@ $('exDay').addEventListener('click', e=>{
 });
 
 /* ================= CUERPO: bioimpedancia ================= */
+/* min y max: rango posible de cada valor, para detectar errores de tipeo */
 const BIO = [
-  {k:'peso', l:'Peso', u:' kg', d:1, gd:null, color:'var(--body)'},
-  {k:'grasa', l:'Grasa corporal', short:'Grasa', u:'%', d:1, gd:true, color:'var(--food)'},
-  {k:'musc', l:'Masa muscular', short:'Músculo', u:'%', d:1, gd:false, color:'var(--lift)'},
-  {k:'agua', l:'Agua corporal', short:'Agua', u:'%', d:1, gd:false, color:'#2B9BB5'},
-  {k:'visc', l:'Grasa visceral', short:'Visceral', u:'', d:1, gd:true, color:'var(--warn)'},
-  {k:'osea', l:'Masa ósea', short:'Ósea', u:' kg', d:1, gd:null, color:'var(--muted)'},
-  {k:'tmb', l:'Metabolismo basal', short:'Metab.', u:' kcal', d:0, gd:null, color:'var(--ok)'},
+  {k:'peso', l:'Peso', u:' kg', d:1, gd:null, color:'var(--body)', min:20, max:350},
+  {k:'grasa', l:'Grasa corporal', short:'Grasa', u:'%', d:1, gd:true, color:'var(--food)', min:2, max:75},
+  {k:'musc', l:'Masa muscular', short:'Músculo', u:'%', d:1, gd:false, color:'var(--lift)', min:5, max:95},
+  {k:'agua', l:'Agua corporal', short:'Agua', u:'%', d:1, gd:false, color:'#2B9BB5', min:20, max:85},
+  {k:'visc', l:'Grasa visceral', short:'Visceral', u:'', d:1, gd:true, color:'var(--warn)', min:1, max:60},
+  {k:'osea', l:'Masa ósea', short:'Ósea', u:' kg', d:1, gd:null, color:'var(--muted)', min:0.5, max:15},
+  {k:'tmb', l:'Metabolismo basal', short:'Metab.', u:' kcal', d:0, gd:null, color:'var(--ok)', min:500, max:5000},
 ];
+const MED_RANGE = {min:5, max:250};
+/* Repara valores imposibles guardados antes, cuando el teléfono perdía la coma
+   decimal (48,8 quedaba como 488). Devuelve true si cambió algo. */
+function repairState(){
+  let changed = false;
+  const fix = (v, max) => { let n = num(v); if(n==null || n<=max) return v; while(n>max) n /= 10; changed = true; return Math.round(n*10)/10; };
+  state.bio.forEach(b=>BIO.forEach(c=>{ if(c.k!=='tmb' && b[c.k]!=null) b[c.k] = fix(b[c.k], c.max); }));
+  state.weights.forEach(w=>{ w.kg = fix(w.kg, 350); });
+  state.medidas.forEach(m=>MED.forEach(c=>{ if(m[c.k]!=null) m[c.k] = fix(m[c.k], MED_RANGE.max); }));
+  if(changed){ syncProfileWeight(); saveLocal(); }
+  return changed;
+}
 let bioMetric = 'grasa';
 /* rangos generales de referencia de grasa corporal (adultos) */
 function fatZones(sexo){ return sexo==='m' ? {min:10, max:50, cuts:[21,33,39]} : {min:3, max:40, cuts:[8,20,25]}; }
@@ -1193,7 +1210,12 @@ $('saveBio').addEventListener('click', ()=>{
   const rec = {id:uid(), date, notas:$('bNotas').value.trim()};
   const map = {peso:'bPeso', grasa:'bGrasa', musc:'bMusc', agua:'bAgua', visc:'bVisc', osea:'bOsea', tmb:'bTmb'};
   let any = false;
-  for(const [k,id] of Object.entries(map)){ const v = num($(id).value); if(v!=null){ rec[k]=v; any=true; } }
+  for(const [k,id] of Object.entries(map)){
+    const v = num($(id).value); if(v==null) continue;
+    const c = BIO.find(x=>x.k===k);
+    if(v<c.min || v>c.max){ toast(`${c.l}: ${fmt(v,1)} no parece correcto (entre ${fmt(c.min,1)} y ${fmt(c.max)}${c.u})`); $(id).focus(); return; }
+    rec[k]=v; any=true;
+  }
   if(!any){ toast('Anota al menos un valor'); return; }
   state.bio.push(rec); state.bio.sort((a,b)=>b.date.localeCompare(a.date));
   if(rec.peso!=null) upsertWeight(date, rec.peso);
@@ -1231,7 +1253,11 @@ function renderMedidas(){
 $('saveMed').addEventListener('click', ()=>{
   const date = $('mDate').value || todayK();
   const rec = {id:uid(), date}; let any = false;
-  MED.forEach(c=>{ const v = num($(c.id).value); if(v!=null && v>0){ rec[c.k]=v; any=true; } });
+  for(const c of MED){
+    const v = num($(c.id).value); if(v==null) continue;
+    if(v<MED_RANGE.min || v>MED_RANGE.max){ toast(`${c.l}: ${fmt(v,1)} cm no parece correcto`); $(c.id).focus(); return; }
+    rec[c.k]=v; any=true;
+  }
   if(!any){ toast('Anota al menos una medida'); return; }
   state.medidas.push(rec); state.medidas.sort((a,b)=>b.date.localeCompare(a.date));
   persist('meta');
@@ -1457,6 +1483,7 @@ if(!(history.state && history.state.forjar)){ history.replaceState({base:1}, '')
 if(navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p=>{ if(!p) navigator.storage.persist(); }).catch(()=>{});
 function renderAll(){ fillFoodList(); fillExList(); renderCustomFoods(); renderRecent(); renderBackupInfo(); renderHoy(); renderNutricion(); renderPesas(); renderCuerpo(); }
 loadLocal();
+repairState();
 renderAll();
 startCloud();
 </script>
