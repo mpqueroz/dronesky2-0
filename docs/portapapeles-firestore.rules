@@ -1,0 +1,43 @@
+// Regla de Mi Portapapeles para Firestore. NO reemplaza tus reglas: copia solo el
+// bloque "match /portapapeles/..." dentro de "match /databases/{database}/documents { ... }".
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Mi Portapapeles: cada cuenta solo ve y edita lo suyo ----
+    match /portapapeles/{uid} {
+      function esDueno() { return request.auth != null && request.auth.uid == uid; }
+      function envioOk(d) {
+        return d.keys().hasAll(['type', 'createdAt', 'from', 'dev'])
+          && d.createdAt is int && d.from is string && d.from.size() <= 40
+          && d.dev is string && d.dev.size() <= 40
+          && ((d.type == 'text'
+               && d.keys().hasOnly(['type', 'text', 'createdAt', 'from', 'dev', 'pinned'])
+               && d.text is string && d.text.size() <= 200000)
+           || (d.type == 'file'
+               && d.keys().hasOnly(['type', 'name', 'size', 'mime', 'path', 'url', 'createdAt', 'from', 'dev', 'pinned'])
+               && d.name is string && d.name.size() <= 300
+               && d.size is int && d.size <= 26214400
+               && d.mime is string && d.mime.size() <= 200
+               && d.path is string && d.path.matches('portapapeles/' + uid + '/.+')
+               && d.url is string && d.url.size() <= 2000));
+      }
+      // ajustes: cuánto tiempo se guardan los envíos
+      allow read: if esDueno();
+      allow write: if esDueno()
+        && request.resource.data.keys().hasOnly(['ttlHours'])
+        && request.resource.data.ttlHours is int
+        && request.resource.data.ttlHours >= 0 && request.resource.data.ttlHours <= 8760;
+      match /items/{id} {
+        allow read, delete: if esDueno();
+        allow create: if esDueno() && envioOk(request.resource.data);
+        // lo único que se puede cambiar después es "fijado"
+        allow update: if esDueno()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned'])
+          && request.resource.data.pinned is bool;
+      }
+    }
+    // ---- fin Mi Portapapeles ----
+
+  }
+}

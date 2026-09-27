@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi Portapapeles</title>
+<meta name="description" content="Texto y archivos entre tu celular y tu PC, al instante.">
+<meta name="theme-color" content="#EEF0F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1318" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Portapapeles">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF0F4; --surface:#FFFFFF; --ink:#151B24; --muted:#5D6877; --line:#DDE2E9; --soft:#F3F5F8;
+  --acc:#4B55D6; --on-acc:#FFFFFF; --ok:#2E8452; --warn:#B7790A; --bad:#C9362A;
+  --cond:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --text:'Barlow',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --shadow:0 1px 2px rgba(21,27,36,.06),0 4px 14px rgba(21,27,36,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1318; --surface:#181E26; --ink:#E5EAF0; --muted:#8B97A6; --line:#27303B; --soft:#1F2630;
+    --acc:#8C93F5; --on-acc:#12151C; --ok:#5CC287; --warn:#E6B440; --bad:#EF6B5E; --shadow:0 1px 2px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1318; --surface:#181E26; --ink:#E5EAF0; --muted:#8B97A6; --line:#27303B; --soft:#1F2630;
+  --acc:#8C93F5; --on-acc:#12151C; --ok:#5CC287; --warn:#E6B440; --bad:#EF6B5E; --shadow:0 1px 2px rgba(0,0,0,.3);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--text);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0px)}
+body.locked{overflow:hidden}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.wrap{max-width:680px;margin:0 auto;padding:14px 16px calc(40px + env(safe-area-inset-bottom,0px))}
+.wrap.dragging::after{content:'Suelta para enviar';position:fixed;inset:10px;border:3px dashed var(--acc);border-radius:22px;background:color-mix(in srgb,var(--acc) 10%,var(--bg));display:grid;place-items:center;font-family:var(--cond);font-size:30px;font-weight:700;color:var(--acc);z-index:40;pointer-events:none}
+.hidden{display:none!important}
+.muted{color:var(--muted)} .small{font-size:14px}
+
+/* barra superior */
+.appbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0 14px}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:36px;height:36px;border-radius:10px;background:var(--ink);color:var(--bg);display:grid;place-items:center}
+.mark svg{width:20px;height:20px}
+.brand b{font-family:var(--cond);font-size:23px;font-weight:700;letter-spacing:.2px}
+.sync{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;background:var(--surface);border:1px solid var(--line);padding:6px 11px;border-radius:99px;cursor:pointer}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.sync.on i{background:var(--ok)} .sync.off i{background:var(--warn)} .sync.err i{background:var(--bad)}
+
+/* tarjetas y botones */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+.card + .card, .card + .list-head{margin-top:14px}
+h1,h2{font-family:var(--cond);margin:0;line-height:1.05}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:46px;padding:0 18px;border-radius:12px;border:0;background:var(--acc);color:var(--on-acc);font-weight:600;font-size:16px;cursor:pointer;white-space:nowrap}
+.btn svg{width:19px;height:19px;flex:none}
+.btn.ghost{background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+.btn.small{min-height:36px;padding:0 12px;font-size:14.5px;border-radius:10px}
+.btn.danger{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:not(:disabled):active{transform:translateY(1px)}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
+.icon-btn:hover{background:var(--soft);color:var(--ink)}
+.icon-btn svg{width:19px;height:19px}
+.icon-btn.on{color:var(--acc)}
+label{display:block;font-size:13.5px;color:var(--muted);margin:0 0 5px;font-weight:500}
+input{width:100%;padding:11px 12px;border-radius:11px;border:1px solid var(--line);background:var(--soft);min-height:46px}
+input:focus,textarea:focus{border-color:var(--acc);outline:none;background:var(--surface)}
+.field{margin-bottom:12px}
+.err{color:var(--bad);font-size:14px;min-height:1.2em;margin:0 0 10px}
+.linkbtn{border:0;background:none;padding:6px 0;color:var(--acc);font-weight:600;cursor:pointer;font-size:14.5px}
+
+/* inicio de sesión */
+.login{max-width:420px;margin:6vh auto 0}
+.login h1{font-size:34px;margin-bottom:6px}
+.login .how{display:grid;gap:10px;margin:16px 0 18px;padding:0;list-style:none}
+.login .how li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--muted)}
+.login .how b{flex:none;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--acc) 14%,transparent);color:var(--acc);font-family:var(--cond);font-size:15px}
+
+/* redactar */
+.composer textarea{width:100%;min-height:96px;max-height:40vh;border:1px solid var(--line);border-radius:14px;padding:12px 13px;background:var(--soft);font:14.5px/1.5 var(--mono);resize:none;display:block}
+.composer .row{display:grid;grid-template-columns:auto auto 1fr;gap:8px;margin-top:10px}
+.composer .row .btn{padding:0 14px}
+@media (max-width:400px){ .composer .row .btn{padding:0 10px;font-size:15px;gap:5px} }
+.composer .hint{font-size:13px;color:var(--muted);margin-top:9px}
+.progress{height:6px;border-radius:4px;background:var(--soft);overflow:hidden;margin-top:10px}
+.progress i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+.upl{font-size:13.5px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;gap:10px}
+.upl span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* lista */
+.list-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:22px 2px 10px}
+.list-head h2{font-size:22px;font-weight:700}
+.list-head .meta{font-size:13.5px;color:var(--muted)}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 12px 10px 14px;box-shadow:var(--shadow);animation:in .25s ease-out}
+.item + .item{margin-top:10px}
+.item.fresh{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
+.item.pinned{border-left:4px solid var(--acc)}
+@keyframes in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.item .top{display:flex;align-items:center;gap:8px}
+.item .src{flex:1;min-width:0;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
+.item .src svg{width:15px;height:15px;flex:none}
+.item .src .pend{color:var(--warn);font-weight:600}
+.item .body{margin-top:6px}
+.txt{white-space:pre-wrap;word-break:break-word;font:14px/1.5 var(--mono);max-height:9em;overflow:hidden;position:relative}
+.txt.open{max-height:none}
+.txt a{color:var(--acc)}
+.more{border:0;background:none;color:var(--acc);font-weight:600;font-size:14px;padding:4px 0;cursor:pointer}
+.file{display:flex;align-items:center;gap:12px}
+.file .ext{width:44px;height:48px;border-radius:10px;background:color-mix(in srgb,var(--acc) 12%,transparent);color:var(--acc);display:grid;place-items:center;font-family:var(--cond);font-weight:700;font-size:14px;text-transform:uppercase;flex:none}
+.file .n{font-weight:600;word-break:break-all;line-height:1.3}
+.file .s{font-size:13px;color:var(--muted)}
+.thumb{display:block;max-width:100%;max-height:260px;border-radius:12px;margin-top:4px;background:var(--soft);cursor:zoom-in}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.empty{color:var(--muted);font-size:15px;padding:26px 12px;text-align:center;border:1.5px dashed var(--line);border-radius:16px}
+
+/* hojas */
+.scrim{position:fixed;inset:0;background:rgba(8,11,15,.5);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;max-width:560px;margin:0 auto;background:var(--surface);border-radius:22px 22px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto;transform:translateY(105%);visibility:hidden;transition:transform .26s cubic-bezier(.2,.8,.2,1),visibility 0s .26s;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+.sheet.on{transform:none;visibility:visible;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.sheet .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sheet .sh h2{font-size:24px;font-weight:700}
+.sheet .x{width:36px;height:36px;border-radius:50%;border:0;background:var(--soft);cursor:pointer;font-size:17px;color:var(--muted)}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:7px 13px;font-size:14.5px;cursor:pointer;color:var(--muted)}
+.opts button.on{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
+.viewer{position:fixed;inset:0;z-index:30;background:rgba(5,7,10,.92);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.viewer.on{opacity:1;pointer-events:auto}
+.viewer img{max-width:100%;max-height:100%;border-radius:8px}
+.viewer .x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:19px;cursor:pointer}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(16px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:15px;opacity:0;pointer-events:none;transition:.22s;z-index:40;max-width:92vw;display:flex;align-items:center;gap:14px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.act{pointer-events:auto}
+.toast .tbtn{border:0;background:none;color:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:4px 0;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2.5" width="8" height="4" rx="1.2"/><path d="M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 20 4l-6 16-3-7z"/><path d="m11 13 9-9"/></symbol>
+  <symbol id="i-attach" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20.5 11.5-8.3 8.3a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></symbol>
+  <symbol id="i-paste" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2.5" width="8" height="4" rx="1.2"/><path d="M9 4.5H6a2 2 0 0 0-2 2V20a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6.5a2 2 0 0 0-2-2h-3"/><path d="M12 11v7m-3-3 3 3 3-3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 19h16"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="m20 4-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6 4 3v2H6v-2l4-3z"/><path d="M12 15v6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-pc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+</svg>
+
+<div class="wrap" id="wrap">
+  <div class="appbar">
+    <div class="brand"><div class="mark"><svg><use href="#i-clip"/></svg></div><b>Portapapeles</b></div>
+    <button class="sync hidden" id="sync" type="button" aria-label="Estado de la conexión. Abrir mi cuenta"><i></i><span>Conectando…</span></button>
+  </div>
+
+  <div class="empty" id="bootView" style="margin-top:20vh;border:0">Cargando…</div>
+
+  <!-- ============ SIN SESIÓN ============ -->
+  <section class="login hidden" id="loginView">
+    <div class="card">
+      <h1>Tu portapapeles, en todos lados</h1>
+      <div class="muted">Pasa textos, enlaces, fotos y archivos entre tu celular y tu PC al instante.</div>
+      <ol class="how">
+        <li><b>1</b><span>Entra con tu cuenta en el celular y en el PC.</span></li>
+        <li><b>2</b><span>Pega, escribe o sube algo en uno de ellos.</span></li>
+        <li><b>3</b><span>Aparece solo en el otro, listo para copiar o descargar.</span></li>
+      </ol>
+      <form id="loginForm" novalidate>
+        <div class="field"><label for="lEmail">Correo</label><input id="lEmail" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
+        <div class="field"><label for="lPass">Clave</label><input id="lPass" type="password" autocomplete="current-password"></div>
+        <div class="err" id="loginErr" role="alert"></div>
+        <button class="btn" id="loginGo" type="submit" style="width:100%">Entrar</button>
+      </form>
+      <div style="display:flex;justify-content:space-between;gap:10px;margin-top:8px">
+        <span class="small muted" style="padding-top:6px">Es la misma cuenta de Forjar.</span>
+        <button class="linkbtn" id="loginReset" type="button">Olvidé mi clave</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CON SESIÓN ============ -->
+  <main class="hidden" id="mainView">
+    <div class="card composer">
+      <textarea id="text" placeholder="Escribe o pega aquí…" aria-label="Texto para enviar" rows="3"></textarea>
+      <div class="row">
+        <button class="btn ghost" id="pasteBtn" type="button" title="Enviar lo que tienes copiado"><svg><use href="#i-paste"/></svg><span>Pegar</span></button>
+        <button class="btn ghost" id="attachBtn" type="button" title="Enviar un archivo o foto"><svg><use href="#i-attach"/></svg><span>Archivo</span></button>
+        <button class="btn" id="sendBtn" type="button"><svg><use href="#i-send"/></svg>Enviar</button>
+      </div>
+      <input type="file" id="fileInput" multiple hidden>
+      <div id="uploads"></div>
+      <div class="hint" id="hint"></div>
+    </div>
+
+    <div class="list-head"><h2>Recibidos</h2><span class="meta" id="listMeta"></span></div>
+    <div id="list"></div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="sheet" tabindex="-1" id="sh-cuenta" role="dialog" aria-modal="true" aria-labelledby="sh-cuenta-t">
+  <div class="grab"></div>
+  <div class="sh"><h2 id="sh-cuenta-t">Mi cuenta</h2><button class="x" data-close aria-label="Cerrar">✕</button></div>
+  <div class="muted small">Conectado como</div>
+  <div style="font-weight:600;margin-bottom:16px;word-break:break-all" id="acctEmail"></div>
+  <label>Borrar solos los envíos después de</label>
+  <div class="opts" id="ttlOpts" role="group" aria-label="Tiempo antes de borrar"></div>
+  <div class="small muted" style="margin:8px 0 18px">Los fijados (📌) no se borran solos. Se guardan como máximo los <span id="maxN"></span> más recientes.</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn danger small" id="clearAll" type="button"><svg><use href="#i-trash"/></svg>Borrar todo</button>
+    <span style="flex:1"></span>
+    <button class="btn ghost small" id="logoutBtn" type="button">Salir</button>
+  </div>
+</div>
+
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Imagen"><img id="viewerImg" alt=""><button class="x" id="viewerX" aria-label="Cerrar">✕</button></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+/* ================= Ajustes ================= */
+const MAX_ITEMS = 60;                       // se guardan como máximo estos envíos (sin contar los fijados)
+const MAX_FILE = 25 * 1024 * 1024;          // tamaño máximo por archivo (igual que en storage.rules)
+const MAX_TEXT = 200000;                    // caracteres máximos por texto (igual que en firestore.rules)
+const TTL_OPTIONS = [[24,'1 día'],[72,'3 días'],[168,'7 días'],[720,'30 días'],[0,'Nunca']];
+const DEFAULT_TTL = 72;
+
+/* ================= Utilidades ================= */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const newId = () => { const a = new Uint8Array(12); crypto.getRandomValues(a); return Date.now().toString(36) + Array.from(a, b => (b % 36).toString(36)).join(''); };
+function fmtSize(b){ if(b < 1024) return b + ' B'; if(b < 1048576) return (b/1024).toFixed(0) + ' KB'; return (b/1048576).toFixed(1).replace('.', ',') + ' MB'; }
+function ago(ts){
+  const s = Math.max(0, (Date.now() - ts) / 1000);
+  if(s < 45) return 'recién';
+  if(s < 3600) return `hace ${Math.round(s/60)} min`;
+  const d = new Date(ts), today = new Date(); const y = new Date(); y.setDate(y.getDate()-1);
+  const hm = d.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
+  if(d.toDateString() === today.toDateString()) return `hoy ${hm}`;
+  if(d.toDateString() === y.toDateString()) return `ayer ${hm}`;
+  return d.toLocaleDateString('es-CL', {day:'numeric', month:'short'}).replace('.', '') + ' ' + hm;
+}
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k, v){ try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); }catch(e){} }
+function toast(msg, action, label='Deshacer', ms){
+  const t = $('toast'); t.textContent = msg; t.classList.toggle('act', !!action);
+  if(action){ const b = document.createElement('button'); b.type = 'button'; b.className = 'tbtn'; b.textContent = label; b.onclick = () => { clearTimeout(toast._t); t.classList.remove('show','act'); action(); }; t.appendChild(b); }
+  t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show','act'), ms || (action ? 5000 : 2000));
+}
+/* nombre del dispositivo, para mostrar desde dónde llegó cada cosa */
+const DEVICE = (() => {
+  const u = navigator.userAgent;
+  if(/iPhone/.test(u)) return {name:'iPhone', phone:true};
+  if(/iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1)) return {name:'iPad', phone:true};
+  if(/Android/.test(u)) return {name: /Mobile/.test(u) ? 'Celular Android' : 'Tablet Android', phone:true};
+  if(/Mac/.test(u)) return {name:'Mac', phone:false};
+  if(/Windows/.test(u)) return {name:'PC Windows', phone:false};
+  if(/CrOS/.test(u)) return {name:'Chromebook', phone:false};
+  return {name:'PC', phone:false};
+})();
+const DEV_ID = lsGet('pp_dispositivo') || (() => { const id = newId(); lsSet('pp_dispositivo', id); return id; })();
+$('hint').textContent = DEVICE.phone
+  ? 'Toca "Pegar" para enviar lo que copiaste. También puedes compartir desde otras apps a Portapapeles.'
+  : 'Pega (Ctrl+V) texto o imágenes en cualquier parte, o arrastra archivos aquí. Ctrl+Enter envía.';
+
+/* ================= Firebase ================= */
+let fb = null, user = null, itemsCol = null, unsubItems = null, unsubSettings = null;
+let items = [], ttlHours = DEFAULT_TTL, firstSnap = true;
+const hiddenIds = new Set();           // borrados con "Deshacer" aún disponible
+const deleteTimers = new Map();
+
+async function loadFirebase(){
+  if(fb) return fb;
+  // en local con ?emu usa los emuladores de Firebase (solo para pruebas)
+  const emu = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has('emu');
+  let config;
+  if(emu) config = {apiKey:'demo-key', projectId:'demo-forjar', authDomain:location.host, storageBucket:'demo-forjar.appspot.com', appId:'demo'};
+  else{
+    const r = await fetch('/__/firebase/init.json', {cache:'no-store'});
+    config = r.ok ? await r.json() : null;
+    if(!config || !config.apiKey) throw Object.assign(new Error('init.json ' + r.status), {code:'pp/sin-config'});
+  }
+  const sdk = await import('./firebase-sdk.js');
+  const app = sdk.initializeApp(config);
+  const auth = sdk.getAuth(app);
+  let db;
+  try{ db = sdk.initializeFirestore(app, {localCache: sdk.persistentLocalCache({tabManager: sdk.persistentMultipleTabManager()})}); }
+  catch(e){ db = sdk.initializeFirestore(app, {}); }
+  const storage = sdk.getStorage(app);
+  if(emu){
+    sdk.connectAuthEmulator(auth, 'http://' + location.hostname + ':9099', {disableWarnings:true});
+    sdk.connectFirestoreEmulator(db, location.hostname, 8080);
+    sdk.connectStorageEmulator(storage, location.hostname, 9199);
+  }
+  return fb = {sdk, auth, db, storage};
+}
+
+function setSync(mode){
+  const el = $('sync'); el.classList.remove('hidden');
+  el.className = 'sync ' + mode;
+  el.querySelector('span').textContent = {on:'Conectado', off:'Sin conexión', err:'Error', wait:'Conectando…'}[mode];
+}
+window.addEventListener('online', () => user && setSync('on'));
+window.addEventListener('offline', () => user && setSync('off'));
+
+function onUser(u){
+  user = u;
+  $('bootView').classList.add('hidden');
+  if(unsubItems){ unsubItems(); unsubItems = null; }
+  if(unsubSettings){ unsubSettings(); unsubSettings = null; }
+  $('loginView').classList.toggle('hidden', !!u);
+  $('mainView').classList.toggle('hidden', !u);
+  if(!u){ $('sync').classList.add('hidden'); items = []; return; }
+  $('acctEmail').textContent = u.email || '';
+  setSync(navigator.onLine ? 'wait' : 'off');
+  const {sdk, db} = fb;
+  itemsCol = sdk.collection(db, 'portapapeles', u.uid, 'items');
+  firstSnap = true;
+  unsubItems = sdk.onSnapshot(sdk.query(itemsCol, sdk.orderBy('createdAt', 'desc'), sdk.limit(MAX_ITEMS + 40)), {includeMetadataChanges:true}, snap => {
+    const prevIds = new Set(items.map(x => x.id));
+    items = snap.docs.map(d => ({id:d.id, ...d.data(), pending:d.metadata.hasPendingWrites}));
+    if(!snap.metadata.fromCache) setSync('on');
+    else if(!navigator.onLine) setSync('off');
+    // aviso cuando llega algo desde otro dispositivo
+    if(!firstSnap){
+      const fresh = items.filter(x => !prevIds.has(x.id) && x.dev !== DEV_ID);
+      fresh.forEach(x => freshIds.add(x.id));
+      const t = fresh.find(x => x.type === 'text');
+      if(t) toast(`Llegó texto desde ${t.from || 'otro dispositivo'}`, () => copyText(t.text), 'Copiar', 7000);
+      else if(fresh.length) toast(`Llegó ${fresh[0].name || 'un archivo'} desde ${fresh[0].from || 'otro dispositivo'}`);
+    }
+    firstSnap = false;
+    render();
+    cleanup();
+  }, err => { setSync('err'); toast(err.code === 'permission-denied' ? 'Sin permiso: revisa las reglas de Firestore.' : 'No se pudo conectar.'); });
+  unsubSettings = sdk.onSnapshot(sdk.doc(db, 'portapapeles', u.uid), s => {
+    const v = s.exists() ? s.data() : {};
+    ttlHours = Number.isInteger(v.ttlHours) ? v.ttlHours : DEFAULT_TTL;
+    renderTtl(); cleanup();
+  }, () => {});
+  flushShared();
+}
+
+/* ================= Enviar ================= */
+async function sendText(text){
+  text = String(text || '');
+  if(!text.trim()) return false;
+  if(text.length > MAX_TEXT){ toast(`El texto es muy largo (máximo ${MAX_TEXT.toLocaleString('es-CL')} caracteres).`); return false; }
+  const {sdk, db} = fb, id = newId();
+  // sin conexión queda en espera y se envía solo al volver internet
+  sdk.setDoc(sdk.doc(db, 'portapapeles', user.uid, 'items', id), {type:'text', text, createdAt:Date.now(), from:DEVICE.name, dev:DEV_ID})
+    .catch(e => toast(e.code === 'permission-denied' ? 'Sin permiso para enviar: revisa las reglas.' : 'No se pudo enviar.'));
+  return true;
+}
+function safeName(n){ return (String(n || 'archivo').normalize('NFC').replace(/[\\/#?\[\]*\u0000-\u001f]/g, '_').slice(0, 150)) || 'archivo'; }
+const uploading = new Map();
+function renderUploads(){
+  $('uploads').innerHTML = [...uploading.values()].map(u => `<div class="progress"><i style="width:${u.pct}%"></i></div><div class="upl"><span>${esc(u.name)}</span><span>${u.pct}%</span></div>`).join('');
+}
+async function uploadFile(file){
+  if(!file) return;
+  if(file.size > MAX_FILE){ toast(`${file.name}: pesa ${fmtSize(file.size)}, el máximo es ${fmtSize(MAX_FILE)}.`); return; }
+  if(!navigator.onLine){ toast('Sin conexión: los archivos se envían cuando vuelva internet.'); return; }
+  const {sdk, db, storage} = fb, id = newId();
+  // las capturas pegadas llegan como "image.png": se les pone fecha para distinguirlas
+  const name = safeName(file.name && file.name !== 'image.png' ? file.name : `captura-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.${(file.type.split('/')[1] || 'png').replace('jpeg','jpg')}`);
+  const path = `portapapeles/${user.uid}/${id}/${name}`;
+  const ref = sdk.ref(storage, path);
+  uploading.set(id, {name, pct:0}); renderUploads();
+  try{
+    await new Promise((ok, fail) => {
+      const task = sdk.uploadBytesResumable(ref, file, {
+        contentType: file.type || 'application/octet-stream',
+        // hace que el enlace descargue el archivo con su nombre
+        contentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(name)}`
+      });
+      task.on('state_changed', s => { uploading.get(id).pct = Math.round(s.bytesTransferred / s.totalBytes * 100); renderUploads(); }, fail, ok);
+    });
+    const url = await sdk.getDownloadURL(ref);
+    await sdk.setDoc(sdk.doc(db, 'portapapeles', user.uid, 'items', id), {type:'file', name, size:file.size, mime:file.type || 'application/octet-stream', path, url, createdAt:Date.now(), from:DEVICE.name, dev:DEV_ID});
+  }catch(e){
+    toast(e.code === 'storage/unauthorized' ? 'Sin permiso para subir: revisa las reglas de Storage.' : `No se pudo subir ${name}.`);
+    sdk.deleteObject(ref).catch(() => {});
+  }finally{ uploading.delete(id); renderUploads(); }
+}
+async function sendFiles(files){ for(const f of files) await uploadFile(f); }
+
+$('sendBtn').addEventListener('click', async () => {
+  const t = $('text');
+  if(!t.value.trim()){ t.focus(); return; }
+  if(await sendText(t.value)){ t.value = ''; autosize(); }
+});
+$('text').addEventListener('keydown', e => { if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); $('sendBtn').click(); } });
+function autosize(){ const t = $('text'); t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight + 2, innerHeight * .4) + 'px'; }
+$('text').addEventListener('input', autosize);
+$('attachBtn').addEventListener('click', () => $('fileInput').click());
+$('fileInput').addEventListener('change', e => { const f = [...e.target.files]; e.target.value = ''; sendFiles(f); });
+$('pasteBtn').addEventListener('click', async () => {
+  try{
+    // si hay una imagen copiada, se envía la imagen; si no, el texto
+    if(navigator.clipboard.read){
+      try{
+        const clip = await navigator.clipboard.read();
+        for(const it of clip){
+          const type = it.types.find(t => t.startsWith('image/'));
+          if(type){ const blob = await it.getType(type); await uploadFile(new File([blob], 'image.png', {type})); return; }
+        }
+      }catch(e){ if(e.name === 'NotAllowedError') throw e; }
+    }
+    const text = await navigator.clipboard.readText();
+    if(!text || !text.trim()){ toast('No tienes nada copiado.'); return; }
+    if(await sendText(text)) toast('Enviado');
+  }catch(e){
+    toast('El navegador no dejó leer lo copiado. Mantén presionado el cuadro y elige Pegar.');
+    $('text').focus();
+  }
+});
+// pegar en cualquier parte de la página (fuera del cuadro de texto) envía al tiro
+document.addEventListener('paste', e => {
+  if(!user) return;
+  const cd = e.clipboardData; if(!cd) return;
+  const files = [...cd.files];
+  if(files.length){ e.preventDefault(); sendFiles(files); return; }
+  if(e.target.closest && e.target.closest('textarea,input')) return;
+  const text = cd.getData('text');
+  if(text && text.trim()){ e.preventDefault(); sendText(text).then(ok => ok && toast('Enviado')); }
+});
+// arrastrar y soltar archivos
+let dragDepth = 0;
+addEventListener('dragenter', e => { if(user && e.dataTransfer?.types?.includes('Files')){ e.preventDefault(); dragDepth++; $('wrap').classList.add('dragging'); } });
+addEventListener('dragover', e => { if(user && e.dataTransfer?.types?.includes('Files')) e.preventDefault(); });
+addEventListener('dragleave', () => { if(--dragDepth <= 0){ dragDepth = 0; $('wrap').classList.remove('dragging'); } });
+addEventListener('drop', e => { dragDepth = 0; $('wrap').classList.remove('dragging'); if(!user) return; const f = [...(e.dataTransfer?.files || [])]; if(f.length){ e.preventDefault(); sendFiles(f); } });
+
+/* ================= Lista ================= */
+const freshIds = new Set();
+const openIds = new Set();
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); toast('Copiado'); return true; }
+  catch(e){
+    // respaldo para navegadores que no permiten el portapapeles moderno
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy'); ta.remove();
+    toast(ok ? 'Copiado' : 'No se pudo copiar'); return ok;
+  }
+}
+const URL_RE = /\bhttps?:\/\/[^\s<>"']+[^\s<>"'.,;:!?)\]]/g;
+function linkify(text){
+  let out = '', last = 0;
+  for(const m of text.matchAll(URL_RE)){ out += esc(text.slice(last, m.index)) + `<a href="${esc(m[0])}" target="_blank" rel="noopener noreferrer">${esc(m[0])}</a>`; last = m.index + m[0].length; }
+  return out + esc(text.slice(last));
+}
+const onlyUrl = t => { const s = t.trim(); return /^https?:\/\/\S+$/.test(s) ? s : null; };
+const extOf = n => { const m = /\.([a-z0-9]{1,5})$/i.exec(n || ''); return m ? m[1] : 'arch'; };
+function srcLine(x){
+  const mine = x.dev === DEV_ID;
+  const icon = /iPhone|iPad|Celular|Tablet/.test(x.from || '') ? 'i-phone' : 'i-pc';
+  return `<svg><use href="#${icon}"/></svg><span>${mine ? 'Desde este dispositivo' : esc(x.from || 'Otro dispositivo')} · ${ago(x.createdAt)}</span>${x.pending ? '<span class="pend">· enviando…</span>' : ''}`;
+}
+function render(){
+  const list = items.filter(x => !hiddenIds.has(x.id)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.createdAt - a.createdAt);
+  $('listMeta').textContent = list.length ? `${list.length} ${list.length === 1 ? 'envío' : 'envíos'}` : '';
+  if(!list.length){
+    $('list').innerHTML = `<div class="empty">Aún no hay nada. Envía algo aquí y ábrelo en tu otro dispositivo.</div>`;
+    return;
+  }
+  $('list').innerHTML = list.map(x => {
+    const cls = 'item' + (freshIds.has(x.id) ? ' fresh' : '') + (x.pinned ? ' pinned' : '');
+    const top = `<div class="top"><div class="src">${srcLine(x)}</div>
+      <button class="icon-btn${x.pinned ? ' on' : ''}" data-act="pin" aria-pressed="${!!x.pinned}" aria-label="${x.pinned ? 'Desfijar' : 'Fijar'}" title="${x.pinned ? 'Desfijar' : 'Fijar (no se borra solo)'}"><svg><use href="#i-pin"/></svg></button>
+      <button class="icon-btn" data-act="del" aria-label="Borrar" title="Borrar"><svg><use href="#i-trash"/></svg></button></div>`;
+    if(x.type === 'text'){
+      const long = (x.text || '').length > 400 || (x.text || '').split('\n').length > 6;
+      const url = onlyUrl(x.text || '');
+      return `<div class="${cls}" data-id="${esc(x.id)}">${top}
+        <div class="body"><div class="txt${openIds.has(x.id) ? ' open' : ''}">${linkify(x.text || '')}</div>
+        ${long ? `<button class="more" data-act="more">${openIds.has(x.id) ? 'Ver menos' : 'Ver todo'}</button>` : ''}</div>
+        <div class="actions"><button class="btn small" data-act="copy"><svg><use href="#i-copy"/></svg>Copiar</button>
+        ${url ? `<a class="btn ghost small" href="${esc(url)}" target="_blank" rel="noopener noreferrer"><svg><use href="#i-open"/></svg>Abrir</a>` : ''}</div></div>`;
+    }
+    const img = (x.mime || '').startsWith('image/') && x.url;
+    return `<div class="${cls}" data-id="${esc(x.id)}">${top}
+      <div class="body">${img ? `<img class="thumb" src="${esc(x.url)}" alt="${esc(x.name)}" loading="lazy" data-act="view">` : ''}
+        <div class="file" style="${img ? 'margin-top:8px' : ''}">${img ? '' : `<div class="ext">${esc(extOf(x.name))}</div>`}<div><div class="n">${esc(x.name)}</div><div class="s">${fmtSize(x.size || 0)}</div></div></div></div>
+      <div class="actions">${x.url ? `<a class="btn small" href="${esc(x.url)}" target="_blank" rel="noopener" download="${esc(x.name)}"><svg><use href="#i-down"/></svg>Descargar</a>` : '<span class="small muted">Subiendo…</span>'}</div></div>`;
+  }).join('');
+}
+$('list').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const card = b.closest('[data-id]'), x = items.find(i => i.id === card.dataset.id); if(!x) return;
+  const act = b.dataset.act;
+  freshIds.delete(x.id); card.classList.remove('fresh');
+  if(act === 'copy') copyText(x.text || '');
+  else if(act === 'more'){ openIds.has(x.id) ? openIds.delete(x.id) : openIds.add(x.id); render(); }
+  else if(act === 'view') openViewer(x.url, x.name);
+  else if(act === 'pin') fb.sdk.setDoc(fb.sdk.doc(fb.db, 'portapapeles', user.uid, 'items', x.id), {pinned: !x.pinned}, {merge:true}).catch(() => toast('No se pudo fijar.'));
+  else if(act === 'del') removeWithUndo([x], 'Borrado');
+});
+/* se oculta al tiro y se borra de verdad a los 5 s, salvo que toquen "Deshacer" */
+function removeWithUndo(list, msg){
+  list.forEach(x => { hiddenIds.add(x.id); clearTimeout(deleteTimers.get(x.id)); deleteTimers.set(x.id, setTimeout(() => reallyDelete(x), 5200)); });
+  render();
+  toast(msg, () => { list.forEach(x => { hiddenIds.delete(x.id); clearTimeout(deleteTimers.get(x.id)); deleteTimers.delete(x.id); }); render(); });
+}
+async function reallyDelete(x){
+  deleteTimers.delete(x.id);
+  const {sdk, db, storage} = fb;
+  if(x.path) sdk.deleteObject(sdk.ref(storage, x.path)).catch(() => {});
+  try{ await sdk.deleteDoc(sdk.doc(db, 'portapapeles', user.uid, 'items', x.id)); }
+  catch(e){ hiddenIds.delete(x.id); render(); toast('No se pudo borrar.'); }
+}
+// si se cierra la app con borrados pendientes, se ejecutan antes
+document.addEventListener('visibilitychange', () => { if(document.hidden) [...deleteTimers.keys()].forEach(id => { clearTimeout(deleteTimers.get(id)); const x = items.find(i => i.id === id); if(x) reallyDelete(x); }); });
+/* limpieza automática: lo vencido y lo que pase del máximo (los fijados se salvan) */
+let cleaning = false;
+function cleanup(){
+  if(!user || cleaning || !items.length) return;
+  const cutoff = ttlHours ? Date.now() - ttlHours * 3600e3 : -Infinity;
+  const loose = items.filter(x => !x.pinned && !x.pending).sort((a, b) => b.createdAt - a.createdAt);
+  const old = loose.filter((x, i) => x.createdAt < cutoff || i >= MAX_ITEMS);
+  if(!old.length) return;
+  cleaning = true;
+  Promise.all(old.map(reallyDelete)).finally(() => { cleaning = false; });
+}
+setInterval(() => { render(); cleanup(); }, 60000);
+
+/* ================= Cuenta ================= */
+function renderTtl(){
+  $('maxN').textContent = MAX_ITEMS;
+  $('ttlOpts').innerHTML = TTL_OPTIONS.map(([h, l]) => `<button type="button" data-h="${h}" class="${h === ttlHours ? 'on' : ''}" aria-pressed="${h === ttlHours}">${l}</button>`).join('');
+}
+$('ttlOpts').addEventListener('click', e => {
+  const b = e.target.closest('[data-h]'); if(!b) return;
+  ttlHours = Number(b.dataset.h); renderTtl();
+  fb.sdk.setDoc(fb.sdk.doc(fb.db, 'portapapeles', user.uid), {ttlHours}, {merge:true}).catch(() => toast('No se pudo guardar.'));
+});
+$('clearAll').addEventListener('click', () => {
+  const all = items.filter(x => !hiddenIds.has(x.id));
+  if(!all.length){ toast('No hay nada que borrar.'); return; }
+  closeSheet(); removeWithUndo(all, `${all.length} ${all.length === 1 ? 'envío borrado' : 'envíos borrados'}`);
+});
+$('logoutBtn').addEventListener('click', async () => {
+  if(!confirm('¿Salir de tu cuenta en este dispositivo?')) return;
+  try{ await fb.sdk.signOut(fb.auth); await fb.sdk.terminate(fb.db); await fb.sdk.clearIndexedDbPersistence(fb.db); }catch(e){}
+  location.reload();
+});
+$('sync').addEventListener('click', () => openSheet('sh-cuenta'));
+
+const AUTH_ERR = {
+  'auth/invalid-credential':'Correo o clave incorrectos.', 'auth/wrong-password':'Correo o clave incorrectos.', 'auth/user-not-found':'No hay una cuenta con ese correo.',
+  'auth/invalid-email':'Ese correo no es válido.', 'auth/missing-password':'Escribe tu clave.', 'auth/too-many-requests':'Demasiados intentos. Espera unos minutos.',
+  'auth/network-request-failed':'Sin conexión. Revisa tu internet.', 'auth/user-disabled':'Esta cuenta está desactivada.'
+};
+const authMsg = e => AUTH_ERR[e && e.code] || (e && e.code === 'pp/sin-config' ? 'Firebase no entregó la configuración a esta página.' : 'No se pudo entrar. Detalle: ' + ((e && (e.code || e.message)) || 'desconocido'));
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('lEmail').value.trim(), pass = $('lPass').value;
+  if(!email){ $('loginErr').textContent = 'Escribe tu correo.'; return; }
+  if(!pass){ $('loginErr').textContent = 'Escribe tu clave.'; return; }
+  $('loginGo').disabled = true; $('loginErr').textContent = '';
+  try{ const {sdk, auth} = await loadFirebase(); await sdk.signInWithEmailAndPassword(auth, email, pass); $('lPass').value = ''; }
+  catch(err){ $('loginErr').textContent = authMsg(err); }
+  finally{ $('loginGo').disabled = false; }
+});
+$('loginReset').addEventListener('click', async () => {
+  const email = $('lEmail').value.trim();
+  if(!email){ $('loginErr').textContent = 'Escribe tu correo arriba y vuelve a tocar "Olvidé mi clave".'; $('lEmail').focus(); return; }
+  try{ const {sdk, auth} = await loadFirebase(); await sdk.sendPasswordResetEmail(auth, email); $('loginErr').textContent = ''; toast('Te enviamos un correo para cambiar la clave'); }
+  catch(err){ $('loginErr').textContent = authMsg(err); }
+});
+
+/* ================= Hojas, visor y botón atrás ================= */
+let openSheetEl = null, sheetReturn = null;
+const bg = () => [$('wrap')];
+function openSheet(id){
+  if(openSheetEl) closeSheet();
+  armBack(); sheetReturn = document.activeElement;
+  if(id === 'sh-cuenta') renderTtl();
+  openSheetEl = $(id); openSheetEl.classList.add('on'); $('scrim').classList.add('on'); document.body.classList.add('locked');
+  bg().forEach(e => e.inert = true);
+  const el = openSheetEl; setTimeout(() => { if(openSheetEl === el) el.focus({preventScroll:true}); }, 250);
+}
+function closeSheet(){
+  if(!openSheetEl) return;
+  openSheetEl.classList.remove('on'); $('scrim').classList.remove('on'); document.body.classList.remove('locked');
+  bg().forEach(e => e.inert = false); openSheetEl = null;
+  if(sheetReturn && document.contains(sheetReturn)) sheetReturn.focus({preventScroll:true});
+}
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', closeSheet));
+$('scrim').addEventListener('click', closeSheet);
+function openViewer(url, name){ armBack(); $('viewerImg').src = url; $('viewerImg').alt = name || ''; $('viewer').classList.add('on'); document.body.classList.add('locked'); $('viewerX').focus(); }
+function closeViewer(){ if(!$('viewer').classList.contains('on')) return false; $('viewer').classList.remove('on'); document.body.classList.remove('locked'); return true; }
+$('viewerX').addEventListener('click', closeViewer);
+$('viewer').addEventListener('click', e => { if(e.target.id === 'viewer') closeViewer(); });
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){ if(!closeViewer()) closeSheet(); return; }
+  if(e.key !== 'Tab' || !openSheetEl) return;
+  const f = [...openSheetEl.querySelectorAll('button,input,a[href]')].filter(x => !x.disabled && x.offsetParent);
+  if(!f.length) return;
+  const a = f[0], z = f[f.length - 1];
+  if(e.shiftKey && (document.activeElement === a || document.activeElement === openSheetEl)){ e.preventDefault(); z.focus(); }
+  else if(!e.shiftKey && document.activeElement === z){ e.preventDefault(); a.focus(); }
+});
+// Una entrada extra en el historial: "atrás" cierra el visor o la hoja y, en la
+// pantalla principal, pide presionar otra vez para salir.
+let exitArmed = false, exitTimer = null;
+function armBack(){ exitArmed = false; clearTimeout(exitTimer); if(!(history.state && history.state.pp)) history.pushState({pp:1}, ''); }
+addEventListener('popstate', () => {
+  if(exitArmed) return;
+  if(closeViewer()){ armBack(); return; }
+  if(openSheetEl){ closeSheet(); armBack(); return; }
+  exitArmed = true; toast('Presiona atrás otra vez para salir');
+  exitTimer = setTimeout(armBack, 2500);
+});
+if(!(history.state && history.state.pp)){ history.replaceState({base:1}, ''); history.pushState({pp:1}, ''); }
+
+/* ================= Compartir desde otras apps (Android) ================= */
+// El service worker guarda lo compartido en IndexedDB y abre la app con ?compartido=1.
+function idb(){ return new Promise((ok, fail) => { const r = indexedDB.open('pp-compartir', 1); r.onupgradeneeded = () => r.result.createObjectStore('pendientes', {autoIncrement:true}); r.onsuccess = () => ok(r.result); r.onerror = () => fail(r.error); }); }
+async function takeShared(){
+  const db = await idb();
+  return new Promise((ok, fail) => {
+    const tx = db.transaction('pendientes', 'readwrite'), st = tx.objectStore('pendientes'), out = [];
+    st.openCursor().onsuccess = e => { const c = e.target.result; if(c){ out.push(c.value); c.delete(); c.continue(); } };
+    tx.oncomplete = () => ok(out); tx.onerror = () => fail(tx.error);
+  });
+}
+async function flushShared(){
+  if(!user || !('indexedDB' in window)) return;
+  let shared = [];
+  try{ shared = await takeShared(); }catch(e){ return; }
+  if(new URLSearchParams(location.search).has('compartido')) history.replaceState(history.state, '', location.pathname);
+  let n = 0;
+  for(const s of shared){
+    if(s.text && await sendText(s.text)) n++;
+    for(const f of s.files || []){ await uploadFile(f); n++; }
+  }
+  if(n) toast('Enviado a tus dispositivos');
+}
+
+/* ================= Inicio ================= */
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+(async () => {
+  try{
+    const {sdk, auth} = await loadFirebase();
+    sdk.onAuthStateChanged(auth, onUser);
+  }catch(e){
+    $('bootView').classList.add('hidden');
+    $('loginView').classList.remove('hidden');
+    $('loginErr').textContent = authMsg(e);
+  }
+})();
+</script>
+</body>
+</html>
