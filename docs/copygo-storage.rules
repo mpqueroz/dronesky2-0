@@ -1,0 +1,16 @@
+// Regla de CopyGo para Storage. NO reemplaza tus reglas: copia solo el
+// bloque "match /copygo/..." dentro de "match /b/{bucket}/o { ... }".
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ---- CopyGo: archivos de hasta 25 MB, solo del dueño ----
+    match /copygo/{uid}/{id}/{nombre} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.size <= 25 * 1024 * 1024;
+    }
+    // ---- fin CopyGo ----
+
+  }
+}

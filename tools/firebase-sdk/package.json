@@ -1,9 +1,11 @@
 {
   "name": "forjar-firebase-sdk",
   "private": true,
-  "description": "Empaqueta la parte del SDK de Firebase que usa Forjar en forjar/firebase-sdk.js",
+  "description": "Empaqueta la parte del SDK de Firebase que usa cada app (forjar/ y copygo/)",
   "scripts": {
-    "build": "esbuild entrada.js --bundle --format=esm --minify --legal-comments=none --outfile=../../forjar/firebase-sdk.js"
+    "build": "npm run build:forjar && npm run build:copygo",
+    "build:forjar": "esbuild entrada.js --bundle --format=esm --minify --legal-comments=none --outfile=../../forjar/firebase-sdk.js",
+    "build:copygo": "esbuild copygo.js --bundle --format=esm --minify --legal-comments=none --outfile=../../copygo/firebase-sdk.js"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

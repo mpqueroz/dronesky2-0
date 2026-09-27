@@ -1,6 +1,6 @@
 # Proyecto
 
-Repositorio con dos sitios de Firebase Hosting del proyecto `daniel-tapia-abogado`
+Repositorio con tres sitios de Firebase Hosting del proyecto `daniel-tapia-abogado`
 (ver `firebase.json`). Se publican solos con GitHub Actions al aceptar cambios en `main`;
 cada pull request deja un enlace de vista previa.
 
@@ -11,6 +11,11 @@ cada pull request deja un enlace de vista previa.
   - Datos en Firestore: `forjar/{uid}` y `forjar/{uid}/dias/{AAAA-MM-DD}`. Las reglas están en
     `docs/forjar-firestore.rules` y se publican a mano en la consola (el proyecto tiene un solo
     archivo de reglas; no reemplazar las existentes). Configuración: `docs/forjar.md`.
+- `copygo/` → sitio `copygo` (CopyGo: texto y archivos entre dispositivos).
+  - Usa Firestore y Storage con reglas en `docs/copygo-*.rules`. Configuración: `docs/copygo.md`.
+  - `copygo/firebase-sdk.js` también es generado desde `tools/firebase-sdk/`.
+- Las cuentas se crean en la consola (Authentication → Usuarios): el proyecto no permite crear
+  cuentas desde las páginas.
 
 # Convenciones (pedidas por el dueño; aplicar en todas las páginas y apps)
 
