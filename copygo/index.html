@@ -184,7 +184,7 @@ input:focus,textarea:focus{border-color:var(--acc);outline:none;background:var(-
         <button class="btn" id="loginGo" type="submit" style="width:100%">Entrar</button>
       </form>
       <div style="display:flex;justify-content:space-between;gap:10px;margin-top:8px">
-        <span class="small muted" style="padding-top:6px">Es la misma cuenta de Forjar.</span>
+        <span class="small muted" style="padding-top:6px">¿No tienes cuenta? Pídela a quien administra CopyGo.</span>
         <button class="linkbtn" id="loginReset" type="button">Olvidé mi clave</button>
       </div>
     </div>
@@ -287,7 +287,7 @@ async function loadFirebase(){
   // en local con ?emu usa los emuladores de Firebase (solo para pruebas)
   const emu = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has('emu');
   let config;
-  if(emu) config = {apiKey:'demo-key', projectId:'demo-forjar', authDomain:location.host, storageBucket:'demo-forjar.appspot.com', appId:'demo'};
+  if(emu) config = {apiKey:'demo-key', projectId:'demo-copygo', authDomain:location.host, storageBucket:'demo-copygo.appspot.com', appId:'demo'};
   else{
     const r = await fetch('/__/firebase/init.json', {cache:'no-store'});
     config = r.ok ? await r.json() : null;
