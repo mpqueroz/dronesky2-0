@@ -1,0 +1,19 @@
+// Regla de Forjar para Firestore. NO reemplaza tus reglas: copia solo el bloque
+// "match /forjar/..." dentro de "match /databases/{database}/documents { ... }".
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Forjar: cada persona solo ve y edita sus propios datos ----
+    match /forjar/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      match /dias/{dia} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && dia.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}');
+      }
+    }
+    // ---- fin Forjar ----
+
+  }
+}

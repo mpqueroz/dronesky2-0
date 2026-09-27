@@ -58,7 +58,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 .brand b{font-family:var(--cond);font-size:22px;font-weight:700;letter-spacing:.3px}
 .sync{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;background:var(--surface);border:1px solid var(--line);padding:5px 10px;border-radius:99px}
 .sync i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
-.sync.cloud i{background:var(--ok)} .sync.error i{background:var(--bad)}
+.sync.cloud i{background:var(--ok)} .sync.error i{background:var(--bad)} .sync.offline i{background:var(--warn)}
+.sync.saving i{background:var(--warn);animation:blink 1s ease-in-out infinite}
+@keyframes blink{50%{opacity:.3}}
+button.sync{cursor:pointer;font:inherit;font-size:12.5px;color:var(--muted)}
+.linkbtn{border:0;background:none;padding:6px 0;color:var(--accent,var(--lift));font-weight:600;cursor:pointer;font-size:14.5px}
+.err{color:var(--bad);font-size:14px;min-height:1.2em;margin:0 0 10px}
+.acct{display:flex;align-items:center;gap:12px}
+.acct .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok);font-family:var(--cond);font-weight:700;font-size:19px;flex:none;text-transform:uppercase}
+.acct .main{flex:1;min-width:0}
+.acct .t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ---------- panel head ---------- */
 .panel{display:none}
@@ -249,7 +258,7 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
 <div class="wrap">
   <div class="appbar">
     <div class="brand"><div class="mark">F</div><b>Forjar</b></div>
-    <div class="sync" id="sync"><i></i><span>En este navegador</span></div>
+    <button class="sync" id="sync" type="button" aria-label="Estado del guardado. Abrir mi cuenta"><i></i><span>Solo en este teléfono</span></button>
   </div>
 
   <!-- ============ HOY ============ -->
@@ -291,9 +300,14 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
       <div class="chart" id="hWeekChart"></div>
     </div>
 
+    <div class="card" style="--accent:var(--ok)">
+      <div class="chead"><h2><span class="dot"></span>Mi cuenta</h2></div>
+      <div id="acctBox"></div>
+    </div>
+
     <div class="card">
       <div class="chead"><h2>Respaldo</h2></div>
-      <div class="muted small">Tus datos se guardan solo en este teléfono. Descarga una copia de vez en cuando para no perderlos si cambias de teléfono o se borra el navegador.</div>
+      <div class="muted small" id="backupText">Descarga una copia de tus datos o recupera una anterior.</div>
       <div class="hint" id="backupInfo" style="margin:8px 0 0"></div>
       <div class="backup">
         <button class="btn ghost" id="btnExport">Descargar</button>
@@ -525,6 +539,22 @@ nav.tabs button.on .ico{background:color-mix(in srgb,var(--accent) 15%,transpare
   <button class="btn" id="saveProfile">Guardar perfil</button>
 </div>
 
+<div class="sheet" tabindex="-1" id="sh-cuenta" role="dialog" aria-modal="true" aria-labelledby="sh-cuenta-t" style="--accent:var(--ok)">
+  <div class="grab"></div>
+  <div class="sh"><h2 id="sh-cuenta-t">Entrar</h2><button class="x" data-close aria-label="Cerrar">✕</button></div>
+  <form id="authForm" novalidate>
+    <div class="hint" id="authIntro" style="margin-top:-6px">Con una cuenta tus datos quedan guardados en la nube y puedes usarlos en otro teléfono.</div>
+    <div class="field"><label for="aEmail">Correo</label><input id="aEmail" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
+    <div class="field"><label for="aPass">Clave</label><input id="aPass" type="password" autocomplete="current-password" minlength="6"></div>
+    <div class="err" id="authErr" role="alert"></div>
+    <button class="btn" id="authGo" type="submit">Entrar</button>
+  </form>
+  <div style="display:flex;justify-content:space-between;gap:10px;margin-top:10px">
+    <button class="linkbtn" id="authSwitch" type="button">Crear una cuenta</button>
+    <button class="linkbtn" id="authReset" type="button">Olvidé mi clave</button>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -557,69 +587,167 @@ const BASE_EXERCISES = [
 ].map(([name,muscle])=>({name,muscle}));
 
 /* ================= Estado y guardado ================= */
+// Todo se guarda al instante en este teléfono (localStorage). Con una cuenta
+// iniciada, además se sube a Firestore: forjar/{uid} (perfil, medidas…) y
+// forjar/{uid}/dias/{AAAA-MM-DD} (comidas y series de cada día).
 const LS_KEY = 'forjar_personal_v1';
+const SYNC_KEY = 'forjar_nube_uid';        // cuenta cuyos datos están en este teléfono
+const DIRTY_KEY = 'forjar_pendientes';     // cambios que la nube aún no confirma
 const blank = () => ({profile:{}, customFoods:[], bio:[], weights:[], medidas:[], days:{}});
 let state = blank();
 let cloud = null;
 const timers = new Map(), chains = new Map();
 
-function loadLocal(){ try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if(s) state = Object.assign(blank(), s); }catch(e){} }
-function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k, v){ try{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){} }
+function loadLocal(){ try{ const s = JSON.parse(lsGet(LS_KEY)); if(s) state = Object.assign(blank(), s); }catch(e){} }
+function saveLocal(){ lsSet(LS_KEY, JSON.stringify(state)); }
+function getDirty(){ try{ return new Set(JSON.parse(lsGet(DIRTY_KEY)) || []); }catch(e){ return new Set(); } }
+function setDirty(key, on){ const d = getDirty(); on ? d.add(key) : d.delete(key); lsSet(DIRTY_KEY, d.size ? JSON.stringify([...d]) : null); }
 const metaBody = () => ({profile:state.profile, customFoods:state.customFoods, bio:state.bio, weights:state.weights, medidas:state.medidas});
+const plain = v => JSON.parse(JSON.stringify(v));   // Firestore no acepta undefined
 
 function persist(kind, date){
   saveLocal();
   if(!cloud) return;
   const key = kind==='day' ? 'day:'+date : 'meta';
+  setDirty(key, true); setSync('saving');
   clearTimeout(timers.get(key));
   timers.set(key, setTimeout(()=>flush(key), 700));
 }
 function flush(key){
   timers.delete(key);
-  const prev = chains.get(key) || Promise.resolve();
+  if(!cloud) return;
+  const c = cloud, prev = chains.get(key) || Promise.resolve();
   const run = prev.then(async ()=>{
     try{
-      if(key==='meta'){ await cloud.meta.set(JSON.parse(JSON.stringify(metaBody()))); }
+      if(key==='meta') await c.setMeta(plain(metaBody()));
       else{
-        const date = key.slice(4), d = state.days[date], ref = cloud.days.doc(date);
-        if(!d || (!d.food.length && !d.sets.length)) await ref.delete();
-        else await ref.set(JSON.parse(JSON.stringify(d)));
+        const date = key.slice(4), d = state.days[date];
+        if(!d || (!d.food.length && !d.sets.length)) await c.deleteDay(date);
+        else await c.setDay(date, plain(d));
       }
-      setSync('cloud');
-    }catch(e){ setSync('error'); }
+      if(cloud!==c) return;
+      if(!timers.has(key)) setDirty(key, false);
+      if(!timers.size && getDirty().size===0) setSync('cloud');
+    }catch(e){
+      if(cloud===c){ setSync('error'); if(e && e.code==='permission-denied') toast('La nube rechazó el guardado. Revisa las reglas de Firestore.'); }
+    }
   });
   chains.set(key, run);
+  return run;
 }
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden) [...timers.keys()].forEach(k=>{ clearTimeout(timers.get(k)); flush(k); }); });
+function flushAll(){ return Promise.all([...timers.keys()].map(k=>{ clearTimeout(timers.get(k)); return flush(k); })); }
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) flushAll(); });
+window.addEventListener('pagehide', ()=>{ flushAll(); });
 
+let syncMode = 'local';
 function setSync(mode){
+  if(mode==='saving' && !navigator.onLine) mode = 'offline';
+  syncMode = mode;
   const el = $('sync'); el.className = 'sync ' + mode;
-  el.querySelector('span').textContent = mode==='cloud' ? 'Guardado en tu cuenta' : mode==='error' ? 'Error al guardar' : 'En este navegador';
+  el.querySelector('span').textContent = {cloud:'Guardado en tu cuenta', saving:'Guardando…', offline:'Sin conexión', error:'Error al guardar', local:'Solo en este teléfono'}[mode];
 }
+window.addEventListener('online', ()=>{ if(cloud && syncMode==='offline') setSync('saving'); });
+window.addEventListener('offline', ()=>{ if(cloud && syncMode==='saving') setSync('offline'); });
 const hasData = s => s.bio.length || s.medidas.length || s.weights.length || s.customFoods.length || Object.keys(s.days).length || Object.keys(s.profile).length;
 
-async function initCloud(){
-  if(!window.claude || typeof window.claude.use!=='function') return;
+/* une datos que estaban solo en el teléfono con los de la cuenta (la cuenta gana si hay choque) */
+function mergeStates(local, remote){
+  const byKey = (a, b, key) => { const m = new Map(); a.forEach(x=>m.set(key(x), x)); b.forEach(x=>m.set(key(x), x)); return [...m.values()]; };
+  const byDate = (a,b) => b.date.localeCompare(a.date);
+  const out = blank();
+  out.profile = {...local.profile, ...remote.profile};
+  out.customFoods = byKey(local.customFoods, remote.customFoods, f=>norm(f.name));
+  out.bio = byKey(local.bio, remote.bio, x=>x.id).sort(byDate);
+  out.medidas = byKey(local.medidas, remote.medidas, x=>x.id).sort(byDate);
+  out.weights = byKey(local.weights, remote.weights, x=>x.date).sort(byDate);
+  new Set([...Object.keys(local.days), ...Object.keys(remote.days)]).forEach(k=>{
+    const l = local.days[k] || {food:[], sets:[]}, r = remote.days[k] || {food:[], sets:[]};
+    out.days[k] = {food:byKey(l.food, r.food, x=>x.id), sets:byKey(l.sets, r.sets, x=>x.id)};
+  });
+  return out;
+}
+
+/* ================= Nube (Firebase) ================= */
+let fb = null, account = null;
+async function loadFirebase(){
+  if(fb) return fb;
+  // en local con ?emu usa los emuladores de Firebase (solo para pruebas)
+  const emu = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URLSearchParams(location.search).has('emu');
+  let config;
+  if(emu) config = {apiKey:'demo-key', projectId:'demo-forjar', authDomain:location.host, appId:'demo'};
+  else{
+    // Firebase Hosting entrega la configuración del proyecto en esta dirección
+    const r = await fetch('/__/firebase/init.json');
+    if(!r.ok) throw new Error('Firebase no está disponible en este sitio');
+    config = await r.json();
+  }
+  const sdk = await import('./firebase-sdk.js');
+  const app = sdk.initializeApp(config);
+  const auth = sdk.getAuth(app);
+  let db;
+  try{ db = sdk.initializeFirestore(app, {localCache: sdk.persistentLocalCache({tabManager: sdk.persistentMultipleTabManager()})}); }
+  catch(e){ db = sdk.initializeFirestore(app, {}); }
+  if(emu){ sdk.connectAuthEmulator(auth, 'http://'+location.hostname+':9099', {disableWarnings:true}); sdk.connectFirestoreEmulator(db, location.hostname, 8080); }
+  return fb = {sdk, auth, db};
+}
+function makeCloud(uid){
+  const {sdk, db} = fb;
+  const metaRef = sdk.doc(db, 'forjar', uid), dayRef = k => sdk.doc(db, 'forjar', uid, 'dias', k);
+  return {
+    uid,
+    setMeta: v => sdk.setDoc(metaRef, v),
+    setDay: (k, v) => sdk.setDoc(dayRef(k), v),
+    deleteDay: k => sdk.deleteDoc(dayRef(k)),
+    async load(){
+      const [ms, ds] = await Promise.all([sdk.getDoc(metaRef), sdk.getDocs(sdk.collection(db, 'forjar', uid, 'dias'))]);
+      const r = blank(), m = ms.exists() ? plain(ms.data()) : {};
+      r.profile = m.profile||{}; r.customFoods = m.customFoods||[]; r.bio = m.bio||[]; r.weights = m.weights||[]; r.medidas = m.medidas||[];
+      ds.forEach(d=>{ const v = plain(d.data()||{}); r.days[d.id] = {food:v.food||[], sets:v.sets||[]}; });
+      return {data:r, exists: ms.exists() || !ds.empty};
+    }
+  };
+}
+/* trae los datos de la cuenta; conserva los cambios de este teléfono que aún no se subían */
+async function pullCloud(){
+  const c = cloud; if(!c) return;
+  const {data:remote} = await c.load();
+  if(cloud!==c || timers.size) return;
+  const dirty = getDirty();
+  if(dirty.has('meta')) Object.assign(remote, plain(metaBody()));
+  dirty.forEach(k=>{ if(k.startsWith('day:')){ const d = k.slice(4); if(state.days[d]) remote.days[d] = plain(state.days[d]); else delete remote.days[d]; } });
+  state = remote; saveLocal(); renderAll();
+  dirty.forEach(k=>flush(k));
+  if(!dirty.size) setSync('cloud');
+}
+async function connectCloud(user){
+  cloud = makeCloud(user.uid); setSync('saving');
+  const owner = lsGet(SYNC_KEY);
   try{
-    const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
-    if(!db || !user) return;
-    const uid = await user.id(); if(!uid) return;
-    const meta = db.doc('data/users/'+uid+'/meta');
-    const days = meta.collection('days');
-    const [ms, ds] = await Promise.all([meta.get(), days.limit(1000).get()]);
-    cloud = {meta, days};
-    if(ms.exists || !ds.empty){
-      const m = ms.exists ? JSON.parse(JSON.stringify(ms.data())) : {};
-      const next = blank();
-      next.profile = m.profile||{}; next.customFoods = m.customFoods||[]; next.bio = m.bio||[]; next.weights = m.weights||[]; next.medidas = m.medidas||[];
-      ds.docs.forEach(d=>{ const v = JSON.parse(JSON.stringify(d.data()||{})); next.days[d.id] = {food:v.food||[], sets:v.sets||[]}; });
-      state = next; saveLocal(); renderAll();
-    }else if(hasData(state)){
-      await meta.set(JSON.parse(JSON.stringify(metaBody())));
-      for(const [date,d] of Object.entries(state.days)) if(d.food.length||d.sets.length) await days.doc(date).set(JSON.parse(JSON.stringify(d)));
+    if(owner===user.uid){ await pullCloud(); return; }
+    const {data:remote, exists} = await cloud.load();
+    // datos que había solo en este teléfono: se suben a la cuenta. Si eran de otra cuenta, se descartan.
+    const local = owner ? blank() : state;
+    const mine = hasData(local);
+    state = exists ? (mine ? mergeStates(local, remote) : remote) : local;
+    lsSet(SYNC_KEY, user.uid); lsSet(DIRTY_KEY, null); saveLocal(); renderAll();
+    if(mine){
+      const {sdk, db} = fb, keys = Object.keys(state.days);
+      // en lotes de 400 (Firestore admite 500 escrituras por lote)
+      for(let i=0; i<=keys.length; i+=400){
+        const b = sdk.writeBatch(db);
+        if(i===0) b.set(sdk.doc(db, 'forjar', user.uid), plain(metaBody()));
+        keys.slice(i, i+400).forEach(k=>{ const d = state.days[k]; if(d.food.length || d.sets.length) b.set(sdk.doc(db, 'forjar', user.uid, 'dias', k), plain(d)); });
+        await b.commit();
+      }
+      toast(exists ? 'Tus datos de este teléfono se unieron a tu cuenta' : 'Tus datos se subieron a tu cuenta');
     }
     setSync('cloud');
-  }catch(e){ cloud = null; setSync('local'); }
+  }catch(e){
+    setSync(navigator.onLine ? 'error' : 'offline');
+    if(e && e.code==='permission-denied') toast('La nube rechazó el acceso. Revisa las reglas de Firestore.');
+  }
 }
 
 /* ================= Utilidades ================= */
@@ -698,7 +826,10 @@ function exHistory(name){
 
 /* ================= Navegación y hojas ================= */
 let viewDay = todayK();
-function showTab(t){
+let currentTab = 'hoy', tabStack = [];
+function showTab(t, fromBack){
+  if(!fromBack && t!==currentTab){ if(t==='hoy') tabStack = []; else { tabStack.push(currentTab); if(tabStack.length>20) tabStack.shift(); } }
+  currentTab = t; armBack();
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on', p.id==='p-'+t));
   document.querySelectorAll('nav.tabs button').forEach(b=>{ const on = b.dataset.tab===t; b.classList.toggle('on', on); if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   window.scrollTo(0,0);
@@ -733,8 +864,10 @@ let openSheetEl = null, sheetReturn = null;
 const bgEls = () => [document.querySelector('.wrap'), document.querySelector('nav.tabs')];
 function openSheet(id){
   if(openSheetEl) closeSheet();
+  armBack();
   sheetReturn = document.activeElement;
   if(id==='sh-prof') loadProfileForm();
+  if(id==='sh-cuenta') prepAuth();
   if(id==='sh-bio' && !$('bDate').value) $('bDate').value = todayK();
   if(id==='sh-med' && !$('mDate').value) $('mDate').value = todayK();
   openSheetEl = $(id); openSheetEl.classList.add('on'); $('scrim').classList.add('on'); document.body.classList.add('locked');
@@ -1198,11 +1331,114 @@ function markBackup(){ try{ localStorage.setItem(BK_KEY, todayK()); }catch(e){} 
 function renderBackupInfo(){
   let last = null; try{ last = localStorage.getItem(BK_KEY); }catch(e){}
   const el = $('backupInfo');
-  if(!hasData(state)){ el.textContent = ''; return; }
+  if(!hasData(state) || account){ el.textContent = ''; return; }
   if(!last){ el.innerHTML = '<span style="color:var(--warn);font-weight:600">Aún no descargas ningún respaldo.</span>'; return; }
   const n = daysAgo(last);
   el.innerHTML = n>14 ? `<span style="color:var(--warn);font-weight:600">Último respaldo ${agoText(last)}. Conviene descargar uno nuevo.</span>` : `Último respaldo: ${agoText(last)}.`;
 }
+
+/* ================= Cuenta ================= */
+let authMode = 'entrar';
+const AUTH_ERR = {
+  'auth/invalid-credential':'Correo o clave incorrectos.', 'auth/wrong-password':'Correo o clave incorrectos.', 'auth/user-not-found':'No hay una cuenta con ese correo.',
+  'auth/invalid-email':'Ese correo no es válido.', 'auth/missing-password':'Escribe tu clave.', 'auth/weak-password':'La clave debe tener al menos 6 caracteres.',
+  'auth/email-already-in-use':'Ese correo ya tiene cuenta. Usa "Ya tengo cuenta".', 'auth/too-many-requests':'Demasiados intentos. Espera unos minutos.',
+  'auth/network-request-failed':'Sin conexión. Revisa tu internet.', 'auth/operation-not-allowed':'Falta activar el inicio con correo en Firebase.'
+};
+const authMsg = e => AUTH_ERR[e && e.code] || 'No se pudo completar. Intenta de nuevo.';
+function prepAuth(){
+  const reg = authMode==='crear';
+  $('sh-cuenta-t').textContent = reg ? 'Crear cuenta' : 'Entrar';
+  $('authGo').textContent = reg ? 'Crear cuenta' : 'Entrar';
+  $('authSwitch').textContent = reg ? 'Ya tengo cuenta' : 'Crear una cuenta';
+  $('authReset').hidden = reg;
+  $('aPass').autocomplete = reg ? 'new-password' : 'current-password';
+  $('authIntro').textContent = reg && hasData(state) ? 'Lo que ya anotaste en este teléfono se subirá a tu nueva cuenta.' : 'Con una cuenta tus datos quedan guardados en la nube y puedes usarlos en otro teléfono.';
+  $('authErr').textContent = '';
+}
+$('authSwitch').addEventListener('click', ()=>{ authMode = authMode==='crear' ? 'entrar' : 'crear'; prepAuth(); });
+$('authForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const email = $('aEmail').value.trim(), pass = $('aPass').value;
+  if(!email){ $('authErr').textContent = 'Escribe tu correo.'; return; }
+  if(pass.length<6){ $('authErr').textContent = 'La clave debe tener al menos 6 caracteres.'; return; }
+  const go = $('authGo'); go.disabled = true; $('authErr').textContent = '';
+  try{
+    const {sdk, auth} = await initAuth();
+    if(authMode==='crear') await sdk.createUserWithEmailAndPassword(auth, email, pass);
+    else await sdk.signInWithEmailAndPassword(auth, email, pass);
+    $('aPass').value = ''; closeSheet(); toast(authMode==='crear' ? 'Cuenta creada' : 'Sesión iniciada');
+  }catch(err){ $('authErr').textContent = authMsg(err); }
+  finally{ go.disabled = false; }
+});
+$('authReset').addEventListener('click', async ()=>{
+  const email = $('aEmail').value.trim();
+  if(!email){ $('authErr').textContent = 'Escribe tu correo arriba y vuelve a tocar "Olvidé mi clave".'; $('aEmail').focus(); return; }
+  try{ const {sdk, auth} = await initAuth(); await sdk.sendPasswordResetEmail(auth, email); $('authErr').textContent = ''; toast('Te enviamos un correo para cambiar la clave'); }
+  catch(err){ $('authErr').textContent = authMsg(err); }
+});
+async function logout(){
+  const pend = getDirty().size || timers.size;
+  if(!confirm(pend ? 'Hay cambios que aún no se suben (sin conexión). Si cierras sesión ahora se pierden. ¿Cerrar igual?' : 'Tus datos quedan en tu cuenta y se borran de este teléfono. ¿Cerrar sesión?')) return;
+  try{ await Promise.race([flushAll(), new Promise(r=>setTimeout(r, 3000))]); }catch(e){}
+  cloud = null;
+  try{ await fb.sdk.signOut(fb.auth); await fb.sdk.terminate(fb.db); await fb.sdk.clearIndexedDbPersistence(fb.db); }catch(e){}
+  [LS_KEY, SYNC_KEY, DIRTY_KEY].forEach(k=>lsSet(k, null));
+  location.reload();
+}
+$('sync').addEventListener('click', ()=>{ if(account){ showTab('hoy'); $('acctBox').scrollIntoView({behavior:'smooth', block:'center'}); } else openSheet('sh-cuenta'); });
+function renderAccount(){
+  const box = $('acctBox');
+  if(account){
+    box.innerHTML = `<div class="acct"><div class="av">${esc((account.email||'?')[0])}</div><div class="main"><div class="t">${esc(account.email||'')}</div><div class="s small muted">Tus datos se guardan en tu cuenta.</div></div><button class="pill" id="btnLogout" type="button">Salir</button></div>`;
+    $('btnLogout').onclick = logout;
+  }else{
+    box.innerHTML = `<div class="muted small">Ahora tus datos están solo en este teléfono. Con una cuenta quedan guardados en la nube y no se pierden si cambias o pierdes el teléfono.</div>
+      <div class="backup"><button class="btn" id="btnCrear" type="button">Crear cuenta</button><button class="btn ghost" id="btnEntrar" type="button">Entrar</button></div>`;
+    $('btnCrear').onclick = ()=>{ authMode='crear'; openSheet('sh-cuenta'); };
+    $('btnEntrar').onclick = ()=>{ authMode='entrar'; openSheet('sh-cuenta'); };
+  }
+}
+let authReady = null;
+function initAuth(){
+  return authReady || (authReady = loadFirebase().then(fbx=>{ fbx.sdk.onAuthStateChanged(fbx.auth, onUser); return fbx; }, e=>{ authReady = null; throw e; }));
+}
+function startCloud(){
+  renderAccount();
+  // Firebase solo se carga al abrir si este teléfono ya usó una cuenta; si no, al tocar "Entrar"
+  if(lsGet(SYNC_KEY)){ setSync('saving'); initAuth().catch(()=>setSync('offline')); }
+}
+function onUser(user){
+  account = user;
+  renderAccount(); renderBackupInfo();
+  if(user) connectCloud(user);
+  else{ cloud = null; setSync('local'); }
+}
+// al volver a la app, trae lo que se haya anotado desde otro teléfono
+let lastPull = Date.now();
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden || !cloud || timers.size || Date.now()-lastPull < 30000) return;
+  lastPull = Date.now(); pullCloud().catch(()=>{});
+});
+
+/* ================= Botón atrás ================= */
+// Se mantiene una entrada extra en el historial: "atrás" cierra la hoja abierta,
+// vuelve a la pestaña anterior y, en Hoy, pide confirmar antes de salir.
+let exitArmed = false, exitTimer = null;
+function armBack(){
+  exitArmed = false; clearTimeout(exitTimer);
+  if(!(history.state && history.state.forjar)) history.pushState({forjar:1}, '');
+}
+window.addEventListener('popstate', ()=>{
+  if(exitArmed) return;
+  if(openSheetEl){ closeSheet(); armBack(); return; }
+  if(tabStack.length){ showTab(tabStack.pop(), true); return; }
+  if(currentTab!=='hoy'){ showTab('hoy', true); return; }
+  exitArmed = true;
+  toast('Presiona atrás otra vez para salir');
+  exitTimer = setTimeout(armBack, 2500);
+});
+if(!(history.state && history.state.forjar)){ history.replaceState({base:1}, ''); history.pushState({forjar:1}, ''); }
 
 /* ================= Inicio ================= */
 // pide al navegador que no borre los datos de la app para liberar espacio
@@ -1210,7 +1446,7 @@ if(navigator.storage && navigator.storage.persist) navigator.storage.persisted()
 function renderAll(){ fillFoodList(); fillExList(); renderCustomFoods(); renderRecent(); renderBackupInfo(); renderHoy(); renderNutricion(); renderPesas(); renderCuerpo(); }
 loadLocal();
 renderAll();
-initCloud();
+startCloud();
 </script>
 </body>
 </html>
