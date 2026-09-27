@@ -1,6 +1,6 @@
-// Mi Portapapeles: permite instalar la app, abrirla sin conexión y recibir lo
+// CopyGo: permite instalar la app, abrirla sin conexión y recibir lo
 // que se comparte desde otras apps (menú Compartir de Android).
-const CACHE = 'pp-v1';
+const CACHE = 'copygo-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './firebase-sdk.js'];
 
 self.addEventListener('install', e => {

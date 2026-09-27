@@ -28,8 +28,8 @@
       ]
     },
     {
-      "site": "portapapeles-md",
-      "public": "portapapeles",
+      "site": "copygo",
+      "public": "copygo",
       "ignore": [
         "**/.*"
       ],

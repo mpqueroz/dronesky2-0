@@ -1,6 +1,6 @@
 {
-  "name": "Mi Portapapeles",
-  "short_name": "Portapapeles",
+  "name": "CopyGo",
+  "short_name": "CopyGo",
   "description": "Texto y archivos entre tu celular y tu PC, al instante.",
   "lang": "es",
   "start_url": "./",

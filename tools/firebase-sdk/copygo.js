@@ -1,4 +1,4 @@
-// Solo lo que usa Mi Portapapeles. Se genera con `npm run build` en esta carpeta.
+// Solo lo que usa CopyGo. Se genera con `npm run build` en esta carpeta.
 export { initializeApp } from 'firebase/app';
 export {
   getAuth, connectAuthEmulator, onAuthStateChanged, signInWithEmailAndPassword,

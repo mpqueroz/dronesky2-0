@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mi Portapapeles</title>
+<title>CopyGo</title>
 <meta name="description" content="Texto y archivos entre tu celular y tu PC, al instante.">
 <meta name="theme-color" content="#EEF0F4" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1318" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Portapapeles">
+<meta name="apple-mobile-web-app-title" content="CopyGo">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -161,7 +161,7 @@ input:focus,textarea:focus{border-color:var(--acc);outline:none;background:var(-
 
 <div class="wrap" id="wrap">
   <div class="appbar">
-    <div class="brand"><div class="mark"><svg><use href="#i-clip"/></svg></div><b>Portapapeles</b></div>
+    <div class="brand"><div class="mark"><svg><use href="#i-clip"/></svg></div><b>CopyGo</b></div>
     <button class="sync hidden" id="sync" type="button" aria-label="Estado de la conexión. Abrir mi cuenta"><i></i><span>Conectando…</span></button>
   </div>
 
@@ -273,7 +273,7 @@ const DEVICE = (() => {
 })();
 const DEV_ID = lsGet('pp_dispositivo') || (() => { const id = newId(); lsSet('pp_dispositivo', id); return id; })();
 $('hint').textContent = DEVICE.phone
-  ? 'Toca "Pegar" para enviar lo que copiaste. También puedes compartir desde otras apps a Portapapeles.'
+  ? 'Toca "Pegar" para enviar lo que copiaste. También puedes compartir desde otras apps a CopyGo.'
   : 'Pega (Ctrl+V) texto o imágenes en cualquier parte, o arrastra archivos aquí. Ctrl+Enter envía.';
 
 /* ================= Firebase ================= */
@@ -327,7 +327,7 @@ function onUser(u){
   $('acctEmail').textContent = u.email || '';
   setSync(navigator.onLine ? 'wait' : 'off');
   const {sdk, db} = fb;
-  itemsCol = sdk.collection(db, 'portapapeles', u.uid, 'items');
+  itemsCol = sdk.collection(db, 'copygo', u.uid, 'items');
   firstSnap = true;
   unsubItems = sdk.onSnapshot(sdk.query(itemsCol, sdk.orderBy('createdAt', 'desc'), sdk.limit(MAX_ITEMS + 40)), {includeMetadataChanges:true}, snap => {
     const prevIds = new Set(items.map(x => x.id));
@@ -346,7 +346,7 @@ function onUser(u){
     render();
     cleanup();
   }, err => { setSync('err'); toast(err.code === 'permission-denied' ? 'Sin permiso: revisa las reglas de Firestore.' : 'No se pudo conectar.'); });
-  unsubSettings = sdk.onSnapshot(sdk.doc(db, 'portapapeles', u.uid), s => {
+  unsubSettings = sdk.onSnapshot(sdk.doc(db, 'copygo', u.uid), s => {
     const v = s.exists() ? s.data() : {};
     ttlHours = Number.isInteger(v.ttlHours) ? v.ttlHours : DEFAULT_TTL;
     renderTtl(); cleanup();
@@ -361,7 +361,7 @@ async function sendText(text){
   if(text.length > MAX_TEXT){ toast(`El texto es muy largo (máximo ${MAX_TEXT.toLocaleString('es-CL')} caracteres).`); return false; }
   const {sdk, db} = fb, id = newId();
   // sin conexión queda en espera y se envía solo al volver internet
-  sdk.setDoc(sdk.doc(db, 'portapapeles', user.uid, 'items', id), {type:'text', text, createdAt:Date.now(), from:DEVICE.name, dev:DEV_ID})
+  sdk.setDoc(sdk.doc(db, 'copygo', user.uid, 'items', id), {type:'text', text, createdAt:Date.now(), from:DEVICE.name, dev:DEV_ID})
     .catch(e => toast(e.code === 'permission-denied' ? 'Sin permiso para enviar: revisa las reglas.' : 'No se pudo enviar.'));
   return true;
 }
@@ -377,7 +377,7 @@ async function uploadFile(file){
   const {sdk, db, storage} = fb, id = newId();
   // las capturas pegadas llegan como "image.png": se les pone fecha para distinguirlas
   const name = safeName(file.name && file.name !== 'image.png' ? file.name : `captura-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.${(file.type.split('/')[1] || 'png').replace('jpeg','jpg')}`);
-  const path = `portapapeles/${user.uid}/${id}/${name}`;
+  const path = `copygo/${user.uid}/${id}/${name}`;
   const ref = sdk.ref(storage, path);
   uploading.set(id, {name, pct:0}); renderUploads();
   try{
@@ -390,7 +390,7 @@ async function uploadFile(file){
       task.on('state_changed', s => { uploading.get(id).pct = Math.round(s.bytesTransferred / s.totalBytes * 100); renderUploads(); }, fail, ok);
     });
     const url = await sdk.getDownloadURL(ref);
-    await sdk.setDoc(sdk.doc(db, 'portapapeles', user.uid, 'items', id), {type:'file', name, size:file.size, mime:file.type || 'application/octet-stream', path, url, createdAt:Date.now(), from:DEVICE.name, dev:DEV_ID});
+    await sdk.setDoc(sdk.doc(db, 'copygo', user.uid, 'items', id), {type:'file', name, size:file.size, mime:file.type || 'application/octet-stream', path, url, createdAt:Date.now(), from:DEVICE.name, dev:DEV_ID});
   }catch(e){
     toast(e.code === 'storage/unauthorized' ? 'Sin permiso para subir: revisa las reglas de Storage.' : `No se pudo subir ${name}.`);
     sdk.deleteObject(ref).catch(() => {});
@@ -507,7 +507,7 @@ $('list').addEventListener('click', e => {
   if(act === 'copy') copyText(x.text || '');
   else if(act === 'more'){ openIds.has(x.id) ? openIds.delete(x.id) : openIds.add(x.id); render(); }
   else if(act === 'view') openViewer(x.url, x.name);
-  else if(act === 'pin') fb.sdk.setDoc(fb.sdk.doc(fb.db, 'portapapeles', user.uid, 'items', x.id), {pinned: !x.pinned}, {merge:true}).catch(() => toast('No se pudo fijar.'));
+  else if(act === 'pin') fb.sdk.setDoc(fb.sdk.doc(fb.db, 'copygo', user.uid, 'items', x.id), {pinned: !x.pinned}, {merge:true}).catch(() => toast('No se pudo fijar.'));
   else if(act === 'del') removeWithUndo([x], 'Borrado');
 });
 /* se oculta al tiro y se borra de verdad a los 5 s, salvo que toquen "Deshacer" */
@@ -520,7 +520,7 @@ async function reallyDelete(x){
   deleteTimers.delete(x.id);
   const {sdk, db, storage} = fb;
   if(x.path) sdk.deleteObject(sdk.ref(storage, x.path)).catch(() => {});
-  try{ await sdk.deleteDoc(sdk.doc(db, 'portapapeles', user.uid, 'items', x.id)); }
+  try{ await sdk.deleteDoc(sdk.doc(db, 'copygo', user.uid, 'items', x.id)); }
   catch(e){ hiddenIds.delete(x.id); render(); toast('No se pudo borrar.'); }
 }
 // si se cierra la app con borrados pendientes, se ejecutan antes
@@ -546,7 +546,7 @@ function renderTtl(){
 $('ttlOpts').addEventListener('click', e => {
   const b = e.target.closest('[data-h]'); if(!b) return;
   ttlHours = Number(b.dataset.h); renderTtl();
-  fb.sdk.setDoc(fb.sdk.doc(fb.db, 'portapapeles', user.uid), {ttlHours}, {merge:true}).catch(() => toast('No se pudo guardar.'));
+  fb.sdk.setDoc(fb.sdk.doc(fb.db, 'copygo', user.uid), {ttlHours}, {merge:true}).catch(() => toast('No se pudo guardar.'));
 });
 $('clearAll').addEventListener('click', () => {
   const all = items.filter(x => !hiddenIds.has(x.id));

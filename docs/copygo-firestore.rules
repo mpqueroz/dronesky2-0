@@ -1,11 +1,11 @@
-// Regla de Mi Portapapeles para Firestore. NO reemplaza tus reglas: copia solo el
-// bloque "match /portapapeles/..." dentro de "match /databases/{database}/documents { ... }".
+// Regla de CopyGo para Firestore. NO reemplaza tus reglas: copia solo el
+// bloque "match /copygo/..." dentro de "match /databases/{database}/documents { ... }".
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ---- Mi Portapapeles: cada cuenta solo ve y edita lo suyo ----
-    match /portapapeles/{uid} {
+    // ---- CopyGo: cada cuenta solo ve y edita lo suyo ----
+    match /copygo/{uid} {
       function esDueno() { return request.auth != null && request.auth.uid == uid; }
       function envioOk(d) {
         return d.keys().hasAll(['type', 'createdAt', 'from', 'dev'])
@@ -19,7 +19,7 @@ service cloud.firestore {
                && d.name is string && d.name.size() <= 300
                && d.size is int && d.size <= 26214400
                && d.mime is string && d.mime.size() <= 200
-               && d.path is string && d.path.matches('portapapeles/' + uid + '/.+')
+               && d.path is string && d.path.matches('copygo/' + uid + '/.+')
                && d.url is string && d.url.size() <= 2000));
       }
       // ajustes: cuánto tiempo se guardan los envíos
@@ -37,7 +37,7 @@ service cloud.firestore {
           && request.resource.data.pinned is bool;
       }
     }
-    // ---- fin Mi Portapapeles ----
+    // ---- fin CopyGo ----
 
   }
 }

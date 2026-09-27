@@ -11,9 +11,9 @@ cada pull request deja un enlace de vista previa.
   - Datos en Firestore: `forjar/{uid}` y `forjar/{uid}/dias/{AAAA-MM-DD}`. Las reglas están en
     `docs/forjar-firestore.rules` y se publican a mano en la consola (el proyecto tiene un solo
     archivo de reglas; no reemplazar las existentes). Configuración: `docs/forjar.md`.
-- `portapapeles/` → sitio `portapapeles-md` (Mi Portapapeles: texto y archivos entre dispositivos).
-  - Usa Firestore y Storage con reglas en `docs/portapapeles-*.rules`. Configuración: `docs/portapapeles.md`.
-  - `portapapeles/firebase-sdk.js` también es generado desde `tools/firebase-sdk/`.
+- `copygo/` → sitio `copygo` (CopyGo: texto y archivos entre dispositivos).
+  - Usa Firestore y Storage con reglas en `docs/copygo-*.rules`. Configuración: `docs/copygo.md`.
+  - `copygo/firebase-sdk.js` también es generado desde `tools/firebase-sdk/`.
 - Las cuentas se crean en la consola (Authentication → Usuarios): el proyecto no permite crear
   cuentas desde las páginas.
 
