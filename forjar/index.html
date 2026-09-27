@@ -679,9 +679,11 @@ async function loadFirebase(){
   if(emu) config = {apiKey:'demo-key', projectId:'demo-forjar', authDomain:location.host, appId:'demo'};
   else{
     // Firebase Hosting entrega la configuración del proyecto en esta dirección
-    const r = await fetch('/__/firebase/init.json');
-    if(!r.ok) throw new Error('Firebase no está disponible en este sitio');
-    config = await r.json();
+    let r;
+    try{ r = await fetch('/__/firebase/init.json', {cache:'no-store'}); }
+    catch(e){ throw Object.assign(new Error('sin conexión'), {code:'auth/network-request-failed'}); }
+    try{ config = r.ok ? await r.json() : null; }catch(e){ config = null; }
+    if(!config || !config.apiKey) throw Object.assign(new Error('init.json '+r.status), {code:'forjar/sin-config'});
   }
   const sdk = await import('./firebase-sdk.js');
   const app = sdk.initializeApp(config);
@@ -1345,7 +1347,16 @@ const AUTH_ERR = {
   'auth/email-already-in-use':'Ese correo ya tiene cuenta. Usa "Ya tengo cuenta".', 'auth/too-many-requests':'Demasiados intentos. Espera unos minutos.',
   'auth/network-request-failed':'Sin conexión. Revisa tu internet.', 'auth/operation-not-allowed':'Falta activar el inicio con correo en Firebase.'
 };
-const authMsg = e => AUTH_ERR[e && e.code] || 'No se pudo completar. Intenta de nuevo.';
+function authMsg(e){
+  const code = (e && e.code) || '';
+  if(AUTH_ERR[code]) return AUTH_ERR[code];
+  if(code==='forjar/sin-config') return 'Firebase no le entregó la configuración a esta página. (' + e.message + ')';
+  if(code.startsWith('auth/requests-from-referer')) return 'La clave del proyecto no permite este sitio: hay que agregar forjar-personal.web.app a las restricciones de la clave.';
+  if(code.startsWith('auth/api-key-not-valid')) return 'La clave del proyecto no es válida para esta página.';
+  if(code==='auth/configuration-not-found') return 'El inicio de sesión no está configurado en el proyecto de Firebase.';
+  // cualquier otro caso: mostrar el detalle para poder corregirlo
+  return 'No se pudo completar. Detalle: ' + (code || (e && e.message) || 'desconocido');
+}
 function prepAuth(){
   const reg = authMode==='crear';
   $('sh-cuenta-t').textContent = reg ? 'Crear cuenta' : 'Entrar';
