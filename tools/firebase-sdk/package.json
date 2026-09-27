@@ -1,0 +1,12 @@
+{
+  "name": "forjar-firebase-sdk",
+  "private": true,
+  "description": "Empaqueta la parte del SDK de Firebase que usa Forjar en forjar/firebase-sdk.js",
+  "scripts": {
+    "build": "esbuild entrada.js --bundle --format=esm --minify --legal-comments=none --outfile=../../forjar/firebase-sdk.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "firebase": "12.19.0"
+  }
+}
