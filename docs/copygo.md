@@ -1,7 +1,7 @@
 # CopyGo
 
 Pasa textos, enlaces, fotos y archivos entre el celular y el PC al instante.
-Se entra con la misma cuenta de Forjar (correo y clave); cada cuenta ve solo lo suyo.
+Se entra con correo y clave; cada cuenta ve solo lo suyo. Las cuentas se crean en la consola.
 
 - Sitio: `copygo` → copygo.web.app (carpeta `copygo/`).
 - Datos: Firestore `copygo/{uid}` (ajustes) y `copygo/{uid}/items/{id}` (envíos).
