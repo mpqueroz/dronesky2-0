@@ -11,7 +11,10 @@ además guarda en Firestore y puede usar sus datos en otro teléfono.
 3. **Firestore Database → Reglas**: agrega el bloque de `docs/forjar-firestore.rules`
    (desde `match /forjar/{uid}` hasta su llave de cierre) dentro de
    `match /databases/{database}/documents { ... }`, sin borrar las reglas que ya hay. Publicar.
-4. **Configuración del proyecto → Tus apps**: debe existir una app web. Si no hay ninguna,
+4. **Cuentas**: en este proyecto la creación de cuentas desde las páginas está desactivada
+   (protege el panel del sitio). Crea la cuenta de cada persona en **Authentication → Usuarios →
+   Agregar usuario**; luego la persona toca "Entrar" en Forjar.
+5. **Configuración del proyecto → Tus apps**: debe existir una app web. Si no hay ninguna,
    agrega una (ícono `</>`). No hace falta copiar nada: el sitio lee la configuración solo.
 
 ## Cómo funciona
