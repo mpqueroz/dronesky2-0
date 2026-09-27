@@ -1345,7 +1345,8 @@ const AUTH_ERR = {
   'auth/invalid-credential':'Correo o clave incorrectos.', 'auth/wrong-password':'Correo o clave incorrectos.', 'auth/user-not-found':'No hay una cuenta con ese correo.',
   'auth/invalid-email':'Ese correo no es válido.', 'auth/missing-password':'Escribe tu clave.', 'auth/weak-password':'La clave debe tener al menos 6 caracteres.',
   'auth/email-already-in-use':'Ese correo ya tiene cuenta. Usa "Ya tengo cuenta".', 'auth/too-many-requests':'Demasiados intentos. Espera unos minutos.',
-  'auth/network-request-failed':'Sin conexión. Revisa tu internet.', 'auth/operation-not-allowed':'Falta activar el inicio con correo en Firebase.'
+  'auth/network-request-failed':'Sin conexión. Revisa tu internet.', 'auth/operation-not-allowed':'Falta activar el inicio con correo en Firebase.',
+  'auth/admin-restricted-operation':'Aquí no se pueden crear cuentas. Pide a quien administra la app que te cree una y luego usa "Entrar".'
 };
 function authMsg(e){
   const code = (e && e.code) || '';
@@ -1405,7 +1406,7 @@ function renderAccount(){
     $('btnLogout').onclick = logout;
   }else{
     box.innerHTML = `<div class="muted small">Ahora tus datos están solo en este teléfono. Con una cuenta quedan guardados en la nube y no se pierden si cambias o pierdes el teléfono.</div>
-      <div class="backup"><button class="btn" id="btnCrear" type="button">Crear cuenta</button><button class="btn ghost" id="btnEntrar" type="button">Entrar</button></div>`;
+      <div class="backup"><button class="btn" id="btnEntrar" type="button">Entrar</button><button class="btn ghost" id="btnCrear" type="button">Crear cuenta</button></div>`;
     $('btnCrear').onclick = ()=>{ authMode='crear'; openSheet('sh-cuenta'); };
     $('btnEntrar').onclick = ()=>{ authMode='entrar'; openSheet('sh-cuenta'); };
   }
