@@ -1,7 +1,20 @@
 {
-  "hosting": {
-    "site": "dronesky2-0",
-    "public": "public",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
-  }
+  "hosting": [
+    {
+      "site": "dronesky2-0",
+      "public": "public",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    },
+    {
+      "site": "forjar-personal",
+      "public": "forjar",
+      "ignore": ["**/.*"],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+        }
+      ]
+    }
+  ]
 }
