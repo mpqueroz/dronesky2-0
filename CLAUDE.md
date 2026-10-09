@@ -1,6 +1,6 @@
 # Proyecto
 
-Repositorio con tres sitios de Firebase Hosting del proyecto `daniel-tapia-abogado`
+Repositorio con cuatro sitios de Firebase Hosting del proyecto `daniel-tapia-abogado`
 (ver `firebase.json`). Se publican solos con GitHub Actions al aceptar cambios en `main`;
 cada pull request deja un enlace de vista previa.
 
@@ -14,6 +14,8 @@ cada pull request deja un enlace de vista previa.
 - `copygo/` → sitio `copygo` (CopyGo: texto y archivos entre dispositivos).
   - Usa Firestore y Storage con reglas en `docs/copygo-*.rules`. Configuración: `docs/copygo.md`.
   - `copygo/firebase-sdk.js` también es generado desde `tools/firebase-sdk/`.
+- `veterinaria/` → sitio `dra-garces-veterinaria` (página de la Dra. Delia Garcés, veterinaria a
+  domicilio). Página sola, sin Firebase: el formulario arma un mensaje de WhatsApp.
 - Las cuentas se crean en la consola (Authentication → Usuarios): el proyecto no permite crear
   cuentas desde las páginas.
 
