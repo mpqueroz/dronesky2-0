@@ -110,7 +110,9 @@ function setup(file) {
   };
   const win = {
     listeners: {},
-    scrollTo(options) { this.lastScroll = options; },
+    scrollTo(options) {
+      this.lastScroll = options;
+    },
     addEventListener(k, fn) {
       (this.listeners[k] ||= []).push(fn);
     },
@@ -170,6 +172,9 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
   const source = fs
     .readFileSync(path.join(root, "admin.js"), "utf8")
     .replace(/^import[\s\S]*?;\n/gm, "");
+  run(
+    "const createClinicalPanel = () => ({reset(){},hide(){},show(){},handleBack(){return false}})",
+  );
   run(source);
   await tick();
   await nodes.loginForm.onsubmit({ preventDefault() {} });
@@ -225,17 +230,35 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
   assert.equal(publicUI.run("active"), "videos");
   assert.equal(publicUI.nodes.communityMore.hidden, true);
   const initialPushes = publicUI.context.history.pushes;
-  publicUI.run("navigateBlog('news'); navigateBlog('answers'); navigateBlog('videos')");
-  assert.equal(publicUI.context.history.pushes, initialPushes, "Las pestañas no acumulan historial");
+  publicUI.run(
+    "navigateBlog('news'); navigateBlog('answers'); navigateBlog('videos')",
+  );
+  assert.equal(
+    publicUI.context.history.pushes,
+    initialPushes,
+    "Las pestañas no acumulan historial",
+  );
   publicUI.run("article({title:'Prueba',body:'Noticia de prueba'})");
   publicUI.context.history.back();
-  assert.equal(publicUI.nodes.articleDialog.open, false, "Atrás cierra la noticia");
+  assert.equal(
+    publicUI.nodes.articleDialog.open,
+    false,
+    "Atrás cierra la noticia",
+  );
   assert.equal(publicUI.run("active"), "videos");
   publicUI.context.history.back();
-  assert.equal(publicUI.context.window.lastScroll.top, 0, "Atrás vuelve al inicio directamente");
+  assert.equal(
+    publicUI.context.window.lastScroll.top,
+    0,
+    "Atrás vuelve al inicio directamente",
+  );
   assert.equal(publicUI.context.history.state.vetBase, true);
   publicUI.run("navigateBlog('answers'); navigateBlog('news')");
-  assert.equal(publicUI.context.history.pushes, initialPushes + 2, "Se reutiliza un solo paso desde el inicio");
+  assert.equal(
+    publicUI.context.history.pushes,
+    initialPushes + 2,
+    "Se reutiliza un solo paso desde el inicio",
+  );
   publicUI.nodes.questionForm.nombre.value = "Visitante";
   publicUI.nodes.questionForm.pregunta.value =
     "¿Qué vacunas necesita mi mascota?";

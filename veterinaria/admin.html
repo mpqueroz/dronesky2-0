@@ -10,8 +10,8 @@
   <body>
     <header>
       <a href="./">← Volver a la página</a>
-      <h1>Tu espacio de publicaciones</h1>
-      <p>Dra. Delia Garcés · Noticias, videos y preguntas</p>
+      <h1>Tu espacio de administración</h1>
+      <p>Dra. Delia Garcés · Publicaciones y pacientes</p>
     </header>
     <main>
       <section id="loginPanel" class="panel">
@@ -45,6 +45,9 @@
       <div id="workspace" hidden>
         <div class="toolbar"><p id="accountLabel"></p></div>
         <nav class="tabs" aria-label="Administración">
+          <button type="button" data-tab="patients" aria-pressed="false">
+            Fichas clínicas
+          </button>
           <button type="button" data-tab="posts" aria-pressed="true">
             Noticias y videos</button
           ><button type="button" data-tab="inbox" aria-pressed="false">
@@ -53,7 +56,12 @@
             Respuestas publicadas
           </button>
         </nav>
-        <div class="toolbar">
+        <section
+          id="clinicalPanel"
+          hidden
+          aria-label="Fichas clínicas privadas"
+        ></section>
+        <div id="publicationToolbar" class="toolbar">
           <button id="newPost" type="button">Nueva publicación</button
           ><button id="refresh" type="button" class="secondary">
             Actualizar

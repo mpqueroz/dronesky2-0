@@ -1,4 +1,5 @@
 import { connect, paths, videoInfo, imageURL, el, message } from "./datos.js";
+import { createClinicalPanel } from "./fichas.js";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -41,6 +42,7 @@ let db,
   busy = false,
   editing = null,
   confirmResolve = null;
+const clinical = createClinicalPanel({ getContext: () => ({ db, user }) });
 function feedback(text, error = false) {
   message(status, text, error);
 }
@@ -57,6 +59,7 @@ editor.addEventListener("cancel", (e) => {
   closeEditor();
 });
 window.addEventListener("popstate", (event) => {
+  if (clinical.handleBack()) return;
   if (event.state?.tab) {
     selectTab(event.state.tab, false);
   }
@@ -206,7 +209,7 @@ function item(snap, tab) {
   return node;
 }
 async function load(reset = true) {
-  if (!user || (busy && !reset)) return;
+  if (!user || active === "patients" || (busy && !reset)) return;
   const run = reset ? ++epoch : epoch,
     tab = active;
   busy = true;
@@ -259,16 +262,28 @@ async function load(reset = true) {
   }
 }
 function selectTab(tab, push = true) {
-  if (!["posts", "inbox", "answers"].includes(tab)) return;
+  if (!["posts", "inbox", "answers", "patients"].includes(tab)) return;
   active = tab;
+  epoch++;
+  busy = false;
+  const patients = tab === "patients";
+  $("publicationToolbar").hidden = patients;
+  $("adminList").hidden = patients;
+  $("loadMore").hidden = patients;
   document
     .querySelectorAll("[data-tab]")
     .forEach((x) =>
       x.setAttribute("aria-pressed", String(x.dataset.tab === tab)),
     );
   $("newPost").hidden = active !== "posts";
-  if (push) history.pushState({ tab }, "");
-  load();
+  if (push) history.replaceState({ vetHome: true, tab }, "");
+  if (patients) {
+    feedback("");
+    clinical.show();
+  } else {
+    clinical.hide();
+    load();
+  }
 }
 for (const b of document.querySelectorAll("[data-tab]"))
   b.onclick = () => selectTab(b.dataset.tab);
@@ -492,6 +507,7 @@ reply.addEventListener("input", () => {
     } catch {}
 });
 function clearWorkspace() {
+  clinical.reset();
   user = null;
   epoch++;
   busy = false;
@@ -578,7 +594,7 @@ $("resetPassword").onclick = async () => {
         $("workspace").hidden = false;
         $("loginPanel").hidden = true;
         $("accountLabel").textContent = account.email;
-        load();
+        selectTab(active, false);
       } catch {
         if (revision === epoch)
           feedback(

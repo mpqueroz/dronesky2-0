@@ -41,3 +41,27 @@ Ejecutar `node tools/veterinaria-check.cjs` y `node --check veterinaria/admin.js
 ## Navegación pública
 
 Noticias, videos, respuestas y enlaces a secciones comparten un solo paso en el historial. Atrás cierra una noticia abierta o vuelve directamente al inicio de la página; una nueva pulsación desde el inicio permite salir normalmente. Abrir el menú no agrega pasos. La flecha translúcida aparece después de bajar 400 px y vuelve arriba sin modificar el historial, con movimiento reducido cuando el dispositivo lo solicita.
+
+## Fichas clínicas privadas
+
+En `admin.html`, la misma cuenta habilitada en `vetAdministradores` accede a **Fichas clínicas**. No se habilitan otras cuentas ni accesos a otras aplicaciones.
+
+- `vetPacientes/{id}`: mascota, tutor, teléfono, dirección y antecedentes. Buscar por paciente o tutor entre las fichas cargadas (25 por página; cargar más amplía la búsqueda).
+- `vetPacientes/{id}/atenciones/{id}`: fecha clínica indicada por la doctora, motivo, peso, evaluación, diagnóstico, tratamiento, vacunas/desparasitación y próximo control. Consultas separadas por paciente, 20 por página.
+- `vetPacientes/{id}/cambios/{id}`: registro inmutable con versión anterior y nueva, motivo de corrección, cuenta responsable y hora del servidor. También 20 por página. La interfaz muestra la hora de `America/Santiago`, incluyendo los cambios de horario de verano. La fecha de atención se distingue de la fecha/hora en que se guardó.
+
+Cada guardado usa una transacción: ficha/atención y registro de cambio se escriben juntos. Las reglas exigen ambos documentos, hora del servidor, UID/correo de la cuenta autenticada y versión consecutiva. No permiten borrar fichas, atenciones ni cambios; los errores se corrigen con una nueva versión y un motivo. Si otro dispositivo modificó una ficha abierta, se rechaza el guardado antiguo; volver a abrir muestra los datos actuales y permite recuperar el texto del borrador explícitamente.
+
+Los borradores se guardan solo en la sesión de este navegador, por cuenta, paciente y registro. Se limpian al cerrar sesión. No hay datos clínicos en el blog ni archivos subidos a Storage. Los datos privados requieren las reglas activas; no utilizar almacenamiento público o modo de prueba para habilitarlos.
+
+### Activar el guardado
+
+1. En el proyecto `daniel-tapia-abogado`, **Firestore → Reglas**, conservar las reglas vigentes.
+2. Agregar el bloque de `docs/veterinaria-fichas.rules` dentro de `match /databases/{database}/documents`, antes del bloqueo final. Usa `isVetAdmin()` y `vetText()` ya existentes; no volver a definirlas. El archivo `docs/veterinaria-firestore-completas.rules` también incluye el bloque y conserva todas las reglas del proyecto conocidas al preparar este cambio; revisar diferencias si se cambiaron reglas posteriormente.
+3. Publicar las reglas. No se necesitan índices compuestos nuevos: la ficha, consultas y cambios usan ordenación de un solo campo.
+4. Con una cuenta administradora, crear un paciente de prueba, registrar una atención y corregir un dato con motivo. Verificar las dos versiones, fecha y hora en **Ver historial de modificaciones**. Desde una sesión sin rol, comprobar que no se puede acceder a los registros.
+
+### Verificación de fichas
+
+- `node tools/veterinaria-fichas-check.cjs`: validación, versiones y fechas de Chile. Con `FIRESTORE_EMULATOR_HOST` definido y dependencias `firebase` y `@firebase/rules-unit-testing`, ejecuta además pruebas contra las reglas completas: guardado atómico, historial inmutable, acceso público denegado, cuentas sin rol denegadas y permisos ajenos conservados. Nunca ejecutar estas pruebas contra producción.
+- `node tools/veterinaria-fichas-ui-check.cjs` con `linkedom`: formularios, cambio de datos, historial anterior/nuevo, conflicto entre dispositivos sin sobrescribir, recuperación de borradores, separación por paciente y limpieza al salir. DOM y transacciones simulados; no sustituyen la prueba de permisos del emulador.
