@@ -243,3 +243,79 @@ select:focus-visible {
     padding: 18px;
   }
 }
+
+/* Fichas privadas: lectura clara, también en celular. */
+.clinical-fields,
+.clinical-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+}
+.clinical-wide {
+  grid-column: 1/-1;
+}
+.clinical-summary {
+  gap: 16px;
+  margin: 24px 0;
+}
+.clinical-summary div,
+.clinical-differences div {
+  min-width: 0;
+}
+.clinical-summary dt,
+.clinical-differences dt {
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--muted);
+}
+.clinical-summary dd,
+.clinical-differences dd {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.clinical-summary div:last-child {
+  grid-column: 1/-1;
+}
+.clinical-differences div {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+.clinical-patient h3 {
+  margin-top: 6px;
+}
+.clinical-patient p {
+  margin: 8px 0;
+}
+.clinical-audit {
+  margin-top: 24px;
+}
+#clinicalPanel h3 {
+  margin-top: 30px;
+}
+#clinicalPanel h4 {
+  margin: 0;
+  font-size: 17px;
+}
+#clinicalPanel .item h3 {
+  margin-top: 0;
+}
+#clinicalPanel .clinical-contact {
+  padding: 10px 0;
+}
+#clinicalEditor textarea {
+  min-height: 100px;
+}
+#clinicalEditor input[type="date"] {
+  min-width: 0;
+}
+@media (max-width: 520px) {
+  .clinical-fields,
+  .clinical-summary {
+    grid-template-columns: 1fr;
+  }
+  .clinical-patient button {
+    width: 100%;
+    margin-top: 12px;
+  }
+}

@@ -1,0 +1,87 @@
+// ADICIONAR dentro de match /databases/{database}/documents, antes do bloqueio final.
+// Usa isVetAdmin() e vetText() já existentes. Não substitui regras de outros sites.
+function vetClinicalMeta(d) {
+  return d.createdAt is timestamp && d.createdBy is string
+    && d.updatedAt == request.time && d.updatedBy == request.auth.uid
+    && d.updatedEmail == request.auth.token.email
+    && d.revision is int && d.revision >= 1
+    && vetText(d.lastChangeId, 1, 128);
+}
+function vetClinicalDate(value) {
+  return value == '' || (value is string && value.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}'));
+}
+function vetPatientValid(d) {
+  let keys = ['name','species','breed','birthDate','sex','weight','tutor','phone','address','background',
+              'createdAt','createdBy','updatedAt','updatedBy','updatedEmail','revision','lastChangeId'];
+  return d.keys().hasAll(keys) && d.keys().hasOnly(keys) && vetClinicalMeta(d)
+    && vetText(d.name,1,100) && vetText(d.species,1,30) && vetText(d.breed,0,100)
+    && vetClinicalDate(d.birthDate) && vetText(d.sex,0,30) && vetText(d.weight,0,20)
+    && vetText(d.tutor,1,120) && vetText(d.phone,0,40) && vetText(d.address,0,250)
+    && vetText(d.background,0,5000);
+}
+function vetVisitValid(d) {
+  let keys = ['date','reason','weight','assessment','diagnosis','treatment','prevention','nextDate',
+              'createdAt','createdBy','updatedAt','updatedBy','updatedEmail','revision','lastChangeId'];
+  return d.keys().hasAll(keys) && d.keys().hasOnly(keys) && vetClinicalMeta(d)
+    && d.date != '' && vetClinicalDate(d.date) && vetClinicalDate(d.nextDate)
+    && vetText(d.reason,1,500) && vetText(d.weight,0,20) && vetText(d.assessment,0,5000)
+    && vetText(d.diagnosis,0,3000) && vetText(d.treatment,0,5000) && vetText(d.prevention,0,3000);
+}
+function vetClinicalNew(d) {
+  return d.createdAt == request.time && d.createdBy == request.auth.uid && d.revision == 1;
+}
+function vetClinicalUpdate(d, previous) {
+  return d.createdAt == previous.createdAt && d.createdBy == previous.createdBy
+    && d.revision == previous.revision + 1 && d.lastChangeId != previous.lastChangeId;
+}
+function vetClinicalLogged(patientId, type, id, previous) {
+  let d = request.resource.data;
+  let c = getAfter(/databases/$(database)/documents/vetPacientes/$(patientId)/cambios/$(d.lastChangeId)).data;
+  return c.recordType == type && c.recordId == id && c.before == previous && c.after == d
+    && c.createdAt == request.time && c.actorUid == request.auth.uid
+    && c.actorEmail == request.auth.token.email;
+}
+function vetClinicalChangeValid(d, changeId) {
+  let keys = ['recordType','recordId','before','after','reason','createdAt','actorUid','actorEmail'];
+  return d.keys().hasAll(keys) && d.keys().hasOnly(keys)
+    && d.recordType in ['patient','visit'] && vetText(d.recordId,1,128)
+    && d.recordId.matches('[A-Za-z0-9_-]+')
+    && (d.before == null || d.before is map) && d.after is map
+    && d.after.lastChangeId == changeId && d.after.updatedAt == request.time
+    && d.after.updatedBy == request.auth.uid && d.after.updatedEmail == request.auth.token.email
+    && d.createdAt == request.time && d.actorUid == request.auth.uid
+    && d.actorEmail == request.auth.token.email
+    && vetText(d.reason, d.before == null ? 0 : 5, 300);
+}
+function vetClinicalPair(path, d) {
+  return getAfter(path).data == d.after
+    && (exists(path) ? get(path).data == d.before : d.before == null);
+}
+match /vetPacientes/{patientId} {
+  allow read: if isVetAdmin();
+  allow create: if isVetAdmin() && vetPatientValid(request.resource.data)
+    && vetClinicalNew(request.resource.data) && vetClinicalLogged(patientId,'patient',patientId,null);
+  allow update: if isVetAdmin() && vetPatientValid(request.resource.data)
+    && vetClinicalUpdate(request.resource.data,resource.data)
+    && vetClinicalLogged(patientId,'patient',patientId,resource.data);
+  allow delete: if false;
+  match /atenciones/{visitId} {
+    allow read: if isVetAdmin();
+    allow create: if isVetAdmin() && exists(/databases/$(database)/documents/vetPacientes/$(patientId))
+      && vetVisitValid(request.resource.data) && vetClinicalNew(request.resource.data)
+      && vetClinicalLogged(patientId,'visit',visitId,null);
+    allow update: if isVetAdmin() && vetVisitValid(request.resource.data)
+      && vetClinicalUpdate(request.resource.data,resource.data)
+      && vetClinicalLogged(patientId,'visit',visitId,resource.data);
+    allow delete: if false;
+  }
+  match /cambios/{changeId} {
+    allow read: if isVetAdmin();
+    allow create: if isVetAdmin() && vetClinicalChangeValid(request.resource.data,changeId)
+      && ((request.resource.data.recordType == 'patient' && request.resource.data.recordId == patientId
+           && vetClinicalPair(/databases/$(database)/documents/vetPacientes/$(patientId),request.resource.data))
+       || (request.resource.data.recordType == 'visit'
+           && vetClinicalPair(/databases/$(database)/documents/vetPacientes/$(patientId)/atenciones/$(request.resource.data.recordId),request.resource.data)));
+    allow update, delete: if false;
+  }
+}
