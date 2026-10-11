@@ -253,3 +253,14 @@
     overflow: auto;
   }
 }
+
+.nav .brand {
+  flex-shrink: 0;
+}
+@media (min-width: 1101px) {
+  .nav-links > li > a,
+  .nav-blog-menu summary {
+    padding-inline: 10px;
+    font-size: 14px;
+  }
+}
