@@ -268,6 +268,11 @@ footer a:hover{color:#fff}
 /* WhatsApp flotante */
 .wa-float{position:fixed;right:20px;bottom:20px;z-index:60;width:62px;height:62px;border-radius:50%;background:#25a560;color:#fff;display:grid;place-items:center;box-shadow:0 12px 28px rgba(37,165,96,.4);transition:transform .2s;text-decoration:none}
 .wa-float:hover{transform:scale(1.07)}
+.back-top{position:fixed;left:20px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:60;width:46px;height:46px;display:grid;place-items:center;border:1px solid rgba(128,150,168,.4);border-radius:50%;background:rgba(128,150,168,.12);color:var(--ink);backdrop-filter:blur(8px);cursor:pointer;transition:background .2s,transform .2s}
+.back-top[hidden]{display:none}
+.back-top:hover{background:rgba(128,150,168,.24);transform:translateY(-2px)}
+.back-top:focus-visible{outline:3px solid var(--teal);outline-offset:4px}
+.back-top svg{width:22px;height:22px}
 .wa-float svg{width:32px;height:32px}
 .wa-float::before{content:"";position:absolute;inset:0;border-radius:50%;background:#25a560;animation:pulse 2.4s ease-out infinite;z-index:-1}
 @keyframes pulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.6);opacity:0}}
@@ -357,6 +362,7 @@ footer a:hover{color:#fff}
 .nodar-credit a{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;text-decoration:none}
 .nodar-credit a:hover{text-decoration:underline;color:var(--sun)}
 </style>
+<link rel="stylesheet" href="comunidad.css">
 </head>
 <body>
 
@@ -418,7 +424,8 @@ footer a:hover{color:#fff}
       <li><a href="#como-funciona">Cómo funciona</a></li>
       <li><a href="#sobre-mi">Sobre mí</a></li>
       <li><a href="#cobertura">Cobertura</a></li>
-      <li><a href="#preguntas">Preguntas</a></li>
+      <li><a href="#preguntas">Dudas</a></li>
+      <li class="nav-blog"><details class="nav-blog-menu"><summary>Blog</summary><ul class="nav-blog-options"><li><a href="#blog-noticias" data-community-link="news">Noticias</a></li><li><a href="#blog-videos" data-community-link="videos">Videos</a></li><li><a href="#blog-preguntas" data-community-link="answers">Preguntas y respuestas</a></li></ul></details></li>
       <li><a href="#agendar">Agendar</a></li>
     </ul>
     <a class="btn btn-wa nav-cta" href="https://wa.me/56977522182?text=Hola%20Dra.%20Garc%C3%A9s%2C%20quisiera%20agendar%20una%20visita%20a%20domicilio%20para%20mi%20mascota." target="_blank" rel="noopener">
@@ -694,6 +701,33 @@ footer a:hover{color:#fff}
     </div>
   </section>
 
+  <section class="sec community" id="comunidad" aria-labelledby="communityHeading">
+    <div class="wrap">
+      <span class="eyebrow">Aprendamos juntos</span>
+      <h2 id="communityHeading">Noticias y consejos para tus mascotas</h2>
+      <p class="community-intro">Novedades, videos y respuestas de la Dra. Delia Garcés.</p>
+      <div class="community-tabs" aria-label="Contenido del blog">
+        <button type="button" id="blog-noticias" data-community-tab="news" aria-pressed="true">Noticias</button>
+        <button type="button" id="blog-videos" data-community-tab="videos" aria-pressed="false">Videos</button>
+        <button type="button" id="blog-preguntas" data-community-tab="answers" aria-pressed="false">Preguntas respondidas</button>
+      </div>
+      <p id="communityStatus" class="community-status" role="status"></p>
+      <div id="communityGrid" class="community-grid"></div>
+      <button id="communityMore" class="community-more btn btn-ghost" type="button" hidden>Ver más</button>
+      <noscript>Activa JavaScript para ver las publicaciones y enviar preguntas.</noscript>
+      <div class="community-question">
+        <div><span class="eyebrow">Tu pregunta, con cuidado</span><h3>Pregúntale a la doctora</h3><p>Tu pregunta llegará a una bandeja privada. Solo se verá en el blog si la doctora decide responderla y publicarla. Tu nombre no se mostrará.</p><p>Evita incluir datos personales. Para agendar o consultar por una urgencia, contáctame directamente por WhatsApp.</p></div>
+        <form id="questionForm">
+          <label for="questionName">Tu nombre</label><input id="questionName" name="nombre" autocomplete="given-name" maxlength="60" required>
+          <label for="questionText">¿Qué te gustaría saber?</label><textarea id="questionText" name="pregunta" rows="5" minlength="10" maxlength="1000" required></textarea>
+          <div class="community-honeypot" aria-hidden="true"><label>Sitio web<input name="website" tabindex="-1" autocomplete="off"></label></div>
+          <button type="submit" class="btn btn-navy">Enviar pregunta</button><p id="questionStatus" class="community-status" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+  <dialog id="articleDialog" class="article-dialog" aria-label="Noticia"><button id="articleClose" type="button" class="article-close" aria-label="Cerrar noticia">×</button><div id="articleContent"></div></dialog>
+
   <!-- CTA FINAL -->
   <section class="cta-band">
     <div class="wrap">
@@ -720,7 +754,7 @@ footer a:hover{color:#fff}
       </div>
       <div>
         <h4>Navegación</h4>
-        <ul><li><a href="#servicios">Servicios</a></li><li><a href="#como-funciona">Cómo funciona</a></li><li><a href="#sobre-mi">Sobre mí</a></li><li><a href="#agendar">Agendar</a></li></ul>
+        <ul><li><a href="#servicios">Servicios</a></li><li><a href="#como-funciona">Cómo funciona</a></li><li><a href="#sobre-mi">Sobre mí</a></li><li><a href="#blog-noticias" data-community-link="news">Noticias</a></li><li><a href="#blog-videos" data-community-link="videos">Videos</a></li><li><a href="#blog-preguntas" data-community-link="answers">Preguntas y respuestas</a></li><li><a href="#agendar">Agendar</a></li></ul>
       </div>
       <div>
         <h4>Contacto</h4>
@@ -737,34 +771,37 @@ footer a:hover{color:#fff}
       <span>Tu mascota, nuestra prioridad 🐾</span>
     </div>
     <p class="nodar-credit"><a href="https://www.nodar.cl" target="_blank" rel="noopener noreferrer">by nodar.cl</a></p>
+    <p class="admin-link"><a href="admin.html">Acceso de administración</a></p>
   </div>
 </footer>
 
 <a class="wa-float" href="https://wa.me/56977522182?text=Hola%20Dra.%20Garc%C3%A9s%2C%20quisiera%20agendar%20una%20visita%20a%20domicilio%20para%20mi%20mascota." target="_blank" rel="noopener" aria-label="Escribir por WhatsApp"><svg aria-hidden="true"><use href="#i-wa"/></svg></a>
 
+<button class="back-top" id="backTop" type="button" aria-label="Volver al inicio de la pantalla" title="Volver arriba" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+
 <script>
 (function(){
   var header=document.querySelector('header');
-  var onScroll=function(){header.classList.toggle('scrolled',window.scrollY>8)};
+  var backTop=document.getElementById('backTop');
+  var onScroll=function(){header.classList.toggle('scrolled',window.scrollY>8);backTop.hidden=window.scrollY<400};
+  backTop.addEventListener('click',function(){window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})});
   window.addEventListener('scroll',onScroll,{passive:true});onScroll();
 
   var btn=document.getElementById('menuBtn'),links=document.getElementById('navLinks');
-  // Botón atrás: si el menú está abierto, atrás lo cierra en vez de salir de la página.
-  var closeMenu=function(){links.classList.remove('open');btn.setAttribute('aria-expanded','false')};
+  // Abrir y cerrar el menú no agrega pasos al historial del celular.
+  var closeMenu=function(){links.classList.remove('open');btn.setAttribute('aria-expanded','false');var submenu=links.querySelector('.nav-blog-menu');if(submenu)submenu.open=false};
   btn.addEventListener('click',function(){
-    if(links.classList.contains('open')){history.back();return}
-    links.classList.add('open');btn.setAttribute('aria-expanded','true');
-    history.pushState({menu:true},'');
+    var open=links.classList.toggle('open');btn.setAttribute('aria-expanded',String(open));
   });
-  window.addEventListener('popstate',function(){if(links.classList.contains('open'))closeMenu()});
+  window.addEventListener('popstate',closeMenu);
   links.addEventListener('click',function(e){
     var a=e.target.closest('a');
-    if(!a||!links.classList.contains('open'))return;
-    // Cierra el menú (y su entrada del historial) y luego baja a la sección.
-    e.preventDefault();
-    var target=document.querySelector(a.getAttribute('href'));
-    closeMenu();history.back();
-    setTimeout(function(){if(target)target.scrollIntoView({behavior:'smooth'})},60);
+    if(!a)return;
+    closeMenu();
+    if(a.dataset.communityLink){
+      e.preventDefault();
+      document.dispatchEvent(new CustomEvent('vet-community-nav',{detail:{tab:a.dataset.communityLink}}));
+    }
   });
 
   document.getElementById('year').textContent=new Date().getFullYear();
@@ -797,5 +834,7 @@ footer a:hover{color:#fff}
   });
 })();
 </script>
+<script type="module" src="comunidad.js"></script>
 </body>
 </html>
+

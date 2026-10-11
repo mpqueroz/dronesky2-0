@@ -1,0 +1,150 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Quién administra el sitio. Solo estas cuentas pueden editar.
+    // (Antes bastaba con "tener sesión", y cualquiera puede crearse una
+    // cuenta usando la clave pública que viene en la página.)
+    function esAdmin() {
+      return request.auth != null
+          && request.auth.token.email in ['mpqueroz@gmail.com'];
+    }
+    function textoOk(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+    // Propiedades y blog: todos leen, solo administración edita.
+    match /properties/{propertyId} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+    match /posts/{postId} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+    // Ajustes del sitio (foto y texto de la portada).
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+    // Formulario de contacto: cualquiera puede ENVIAR un mensaje con el
+    // formato del sitio; solo administración lo lee o lo borra.
+    match /messages/{msgId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'contact', 'comuna', 'message', 'createdAt'])
+                    && request.resource.data.keys().hasAll(['name', 'contact', 'message', 'createdAt'])
+                    && textoOk(request.resource.data.name, 1, 100)
+                    && textoOk(request.resource.data.contact, 1, 100)
+                    && textoOk(request.resource.data.get('comuna', ''), 0, 80)
+                    && textoOk(request.resource.data.message, 1, 2000)
+                    && request.resource.data.createdAt == request.time;
+      allow read, delete: if esAdmin();
+      allow update: if false;
+    }
+    // Preguntas frecuentes: cualquiera puede preguntar (queda sin publicar);
+    // el público solo ve las publicadas; administración responde y publica.
+    match /questions/{qId} {
+      allow create: if request.resource.data.keys().hasOnly(['question', 'answer', 'published', 'createdAt'])
+                    && textoOk(request.resource.data.question, 1, 300)
+                    && request.resource.data.answer == null
+                    && request.resource.data.published == false
+                    && request.resource.data.createdAt == request.time;
+      allow read: if resource.data.published == true || esAdmin();
+      allow update, delete: if esAdmin();
+    }
+    // Forjar (forjar-personal.web.app): cada persona solo ve y edita
+    // sus propios datos. Nadie más puede leerlos, ni administración.
+    match /forjar/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      match /dias/{dia} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && dia.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}');
+      }
+    }
+    // CopyGo (copygo.web.app): cada cuenta solo ve y edita lo suyo.
+    match /copygo/{uid} {
+      function esDueno() { return request.auth != null && request.auth.uid == uid; }
+      function envioOk(d) {
+        return d.keys().hasAll(['type', 'createdAt', 'from', 'dev'])
+          && d.createdAt is int && d.from is string && d.from.size() <= 40
+          && d.dev is string && d.dev.size() <= 40
+          && ((d.type == 'text'
+               && d.keys().hasOnly(['type', 'text', 'createdAt', 'from', 'dev', 'pinned'])
+               && d.text is string && d.text.size() <= 200000)
+           || (d.type == 'file'
+               && d.keys().hasOnly(['type', 'name', 'size', 'mime', 'path', 'url', 'createdAt', 'from', 'dev', 'pinned'])
+               && d.name is string && d.name.size() <= 300
+               && d.size is int && d.size <= 26214400
+               && d.mime is string && d.mime.size() <= 200
+               && d.path is string && d.path.matches('copygo/' + uid + '/.+')
+               && d.url is string && d.url.size() <= 2000));
+      }
+      // ajustes: cuánto tiempo se guardan los envíos
+      allow read: if esDueno();
+      allow write: if esDueno()
+        && request.resource.data.keys().hasOnly(['ttlHours'])
+        && request.resource.data.ttlHours is int
+        && request.resource.data.ttlHours >= 0 && request.resource.data.ttlHours <= 8760;
+      match /items/{id} {
+        allow read, delete: if esDueno();
+        allow create: if esDueno() && envioOk(request.resource.data);
+        // lo único que se puede cambiar después es "fijado"
+        allow update: if esDueno()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned'])
+          && request.resource.data.pinned is bool;
+      }
+    }
+    // Veterinaria: blog público y administración por UID.
+    function isVetAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/vetAdministradores/$(request.auth.uid))
+        && get(/databases/$(database)/documents/vetAdministradores/$(request.auth.uid)).data.active == true;
+    }
+    function vetText(value, minimum, maximum) {
+      return value is string && value.size() >= minimum && value.size() <= maximum;
+    }
+    function validVetPost() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['kind','title','body','video','image','published','createdAt','publishedAt'])
+        && d.keys().hasOnly(['kind','title','body','video','image','published','createdAt','publishedAt'])
+        && d.kind in ['news','videos'] && vetText(d.title,1,140) && vetText(d.body,1,20000)
+        && vetText(d.video,0,2000) && vetText(d.image,0,2000)
+        && d.published is bool && d.createdAt is timestamp && d.publishedAt is timestamp;
+    }
+    match /vetAdministradores/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+    match /vetPublicaciones/{id} {
+      allow read: if resource.data.published == true || isVetAdmin();
+      allow create: if isVetAdmin() && validVetPost() && request.resource.data.createdAt == request.time;
+      allow update: if isVetAdmin() && validVetPost() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isVetAdmin();
+    }
+    match /vetPreguntasPrivadas/{id} {
+      allow create: if request.resource.data.keys().hasAll(['name','question','createdAt','status'])
+        && request.resource.data.keys().hasOnly(['name','question','createdAt','status'])
+        && vetText(request.resource.data.name,1,60)
+        && vetText(request.resource.data.question,10,1000)
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time;
+      allow read, delete: if isVetAdmin();
+      allow update: if isVetAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['pending','answered'];
+    }
+    match /vetRespuestas/{id} {
+      allow read: if resource.data.published == true || isVetAdmin();
+      allow create, update: if isVetAdmin()
+        && request.resource.data.keys().hasAll(['question','answer','published','publishedAt'])
+        && request.resource.data.keys().hasOnly(['question','answer','published','publishedAt'])
+        && vetText(request.resource.data.question,10,1000)
+        && vetText(request.resource.data.answer,1,10000)
+        && request.resource.data.published == true
+        && request.resource.data.publishedAt == request.time;
+      allow delete: if isVetAdmin();
+    }
+    // Todo lo demás queda bloqueado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
