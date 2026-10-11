@@ -173,13 +173,41 @@ const { pathToFileURL } = require("node:url");
       });
     }
     const ref = doc(db, "vetPacientes", "patient1");
-    await assertFails(setDoc(ref, first.after));
+    await assertFails(
+      setDoc(
+        ref,
+        clinicalWrite(
+          null,
+          patient,
+          actor,
+          "missing-log",
+          serverTimestamp(),
+          "patient",
+          "patient1",
+        ).after,
+      ),
+    );
     await assertSucceeds(writeRecord(ref, "patient", "patient1", patient));
     const before = (await getDoc(ref)).data();
     await assertFails(getDoc(doc(guest, "vetPacientes", "patient1")));
     await assertFails(getDocs(collection(guest, "vetPacientes")));
     await assertFails(getDocs(collection(outsider, "vetPacientes")));
     await assertFails(getDoc(doc(disabled, "vetPacientes", "patient1")));
+    await assertFails(
+      setDoc(
+        ref,
+        clinicalWrite(
+          before,
+          { ...before, weight: "4,6" },
+          actor,
+          "missing-update-log",
+          serverTimestamp(),
+          "patient",
+          "patient1",
+          "Prueba sin historial",
+        ).after,
+      ),
+    );
     await assertFails(
       updateDoc(ref, { weight: "9", updatedAt: serverTimestamp() }),
     );
@@ -285,6 +313,13 @@ const { pathToFileURL } = require("node:url");
     );
     await assertSucceeds(setDoc(doc(db, "forjar", actor.uid), { test: true }));
     await assertFails(getDoc(doc(db, "forjar", "other")));
+    await env.withSecurityRulesDisabled(async (context) =>
+      setDoc(doc(context.firestore(), "vetAdministradores", actor.uid), {
+        active: false,
+      }),
+    );
+    await assertFails(getDoc(ref));
+    await assertFails(getDocs(collection(db, "vetPacientes")));
     console.log(
       "OK emulador: ficha y atención atómicas, auditoría inmutable, sin lecturas públicas ni cuentas sin rol, sin huérfanos, preserva permisos de otros sitios.",
     );
