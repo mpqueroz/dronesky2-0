@@ -1,0 +1,51 @@
+// FRAGMENTO: pegar DENTRO de match /databases/{database}/documents.
+// Conservar los permisos de Forjar, CopyGo y las otras aplicaciones.
+function isVetAdmin() {
+  return request.auth != null
+    && exists(/databases/$(database)/documents/vetAdministradores/$(request.auth.uid))
+    && get(/databases/$(database)/documents/vetAdministradores/$(request.auth.uid)).data.active == true;
+}
+function vetText(value, minimum, maximum) {
+  return value is string && value.size() >= minimum && value.size() <= maximum;
+}
+function validVetPost() {
+  let d = request.resource.data;
+  return d.keys().hasAll(['kind','title','body','video','image','published','createdAt','publishedAt'])
+    && d.keys().hasOnly(['kind','title','body','video','image','published','createdAt','publishedAt'])
+    && d.kind in ['news','videos'] && vetText(d.title,1,140) && vetText(d.body,1,20000)
+    && vetText(d.video,0,2000) && vetText(d.image,0,2000)
+    && d.published is bool && d.createdAt is timestamp && d.publishedAt is timestamp;
+}
+match /vetAdministradores/{uid} {
+  allow get: if request.auth != null && request.auth.uid == uid;
+  allow list, create, update, delete: if false;
+}
+match /vetPublicaciones/{id} {
+  allow read: if resource.data.published == true || isVetAdmin();
+  allow create: if isVetAdmin() && validVetPost() && request.resource.data.createdAt == request.time;
+  allow update: if isVetAdmin() && validVetPost() && request.resource.data.createdAt == resource.data.createdAt;
+  allow delete: if isVetAdmin();
+}
+match /vetPreguntasPrivadas/{id} {
+  allow create: if request.resource.data.keys().hasAll(['name','question','createdAt','status'])
+    && request.resource.data.keys().hasOnly(['name','question','createdAt','status'])
+    && vetText(request.resource.data.name,1,60)
+    && vetText(request.resource.data.question,10,1000)
+    && request.resource.data.status == 'pending'
+    && request.resource.data.createdAt == request.time;
+  allow read, delete: if isVetAdmin();
+  allow update: if isVetAdmin()
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+    && request.resource.data.status in ['pending','answered'];
+}
+match /vetRespuestas/{id} {
+  allow read: if resource.data.published == true || isVetAdmin();
+  allow create, update: if isVetAdmin()
+    && request.resource.data.keys().hasAll(['question','answer','published','publishedAt'])
+    && request.resource.data.keys().hasOnly(['question','answer','published','publishedAt'])
+    && vetText(request.resource.data.question,10,1000)
+    && vetText(request.resource.data.answer,1,10000)
+    && request.resource.data.published == true
+    && request.resource.data.publishedAt == request.time;
+  allow delete: if isVetAdmin();
+}

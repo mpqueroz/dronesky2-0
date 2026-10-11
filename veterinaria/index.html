@@ -357,6 +357,7 @@ footer a:hover{color:#fff}
 .nodar-credit a{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;text-decoration:none}
 .nodar-credit a:hover{text-decoration:underline;color:var(--sun)}
 </style>
+<link rel="stylesheet" href="comunidad.css">
 </head>
 <body>
 
@@ -419,6 +420,7 @@ footer a:hover{color:#fff}
       <li><a href="#sobre-mi">Sobre mí</a></li>
       <li><a href="#cobertura">Cobertura</a></li>
       <li><a href="#preguntas">Preguntas</a></li>
+      <li><a href="#comunidad">Blog</a></li>
       <li><a href="#agendar">Agendar</a></li>
     </ul>
     <a class="btn btn-wa nav-cta" href="https://wa.me/56977522182?text=Hola%20Dra.%20Garc%C3%A9s%2C%20quisiera%20agendar%20una%20visita%20a%20domicilio%20para%20mi%20mascota." target="_blank" rel="noopener">
@@ -694,6 +696,33 @@ footer a:hover{color:#fff}
     </div>
   </section>
 
+  <section class="sec community" id="comunidad" aria-labelledby="communityHeading">
+    <div class="wrap">
+      <span class="eyebrow">Aprendamos juntos</span>
+      <h2 id="communityHeading">Noticias y consejos para tus mascotas</h2>
+      <p class="community-intro">Novedades, videos y respuestas de la Dra. Delia Garcés.</p>
+      <div class="community-tabs" aria-label="Contenido del blog">
+        <button type="button" data-community-tab="news" aria-pressed="true">Noticias</button>
+        <button type="button" data-community-tab="videos" aria-pressed="false">Videos</button>
+        <button type="button" data-community-tab="answers" aria-pressed="false">Preguntas respondidas</button>
+      </div>
+      <p id="communityStatus" class="community-status" role="status"></p>
+      <div id="communityGrid" class="community-grid"></div>
+      <button id="communityMore" class="community-more btn btn-ghost" type="button" hidden>Ver más</button>
+      <noscript>Activa JavaScript para ver las publicaciones y enviar preguntas.</noscript>
+      <div class="community-question">
+        <div><span class="eyebrow">Tu pregunta, con cuidado</span><h3>Pregúntale a la doctora</h3><p>Tu pregunta llegará a una bandeja privada. Solo se verá en el blog si la doctora decide responderla y publicarla. Tu nombre no se mostrará.</p><p>Evita incluir datos personales. Para agendar o consultar por una urgencia, contáctame directamente por WhatsApp.</p></div>
+        <form id="questionForm">
+          <label for="questionName">Tu nombre</label><input id="questionName" name="nombre" autocomplete="given-name" maxlength="60" required>
+          <label for="questionText">¿Qué te gustaría saber?</label><textarea id="questionText" name="pregunta" rows="5" minlength="10" maxlength="1000" required></textarea>
+          <div class="community-honeypot" aria-hidden="true"><label>Sitio web<input name="website" tabindex="-1" autocomplete="off"></label></div>
+          <button type="submit" class="btn btn-navy">Enviar pregunta</button><p id="questionStatus" class="community-status" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+  <dialog id="articleDialog" class="article-dialog" aria-label="Noticia"><button id="articleClose" type="button" class="article-close" aria-label="Cerrar noticia">×</button><div id="articleContent"></div></dialog>
+
   <!-- CTA FINAL -->
   <section class="cta-band">
     <div class="wrap">
@@ -737,6 +766,7 @@ footer a:hover{color:#fff}
       <span>Tu mascota, nuestra prioridad 🐾</span>
     </div>
     <p class="nodar-credit"><a href="https://www.nodar.cl" target="_blank" rel="noopener noreferrer">by nodar.cl</a></p>
+    <p class="admin-link"><a href="admin.html">Acceso de administración</a></p>
   </div>
 </footer>
 
@@ -797,5 +827,7 @@ footer a:hover{color:#fff}
   });
 })();
 </script>
+<script type="module" src="comunidad.js"></script>
 </body>
 </html>
+

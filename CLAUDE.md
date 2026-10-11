@@ -15,7 +15,7 @@ cada pull request deja un enlace de vista previa.
   - Usa Firestore y Storage con reglas en `docs/copygo-*.rules`. Configuración: `docs/copygo.md`.
   - `copygo/firebase-sdk.js` también es generado desde `tools/firebase-sdk/`.
 - `veterinaria/` → sitio `dra-garces-veterinaria` (página de la Dra. Delia Garcés, veterinaria a
-  domicilio). Página sola, sin Firebase: el formulario arma un mensaje de WhatsApp.
+  domicilio). Agenda por WhatsApp; blog y panel `admin.html` con Firebase Authentication y Firestore.\n  Configuración, reglas e índices: `docs/veterinaria.md` y `docs/veterinaria-firestore.*`.
 - Las cuentas se crean en la consola (Authentication → Usuarios): el proyecto no permite crear
   cuentas desde las páginas.
 
@@ -28,3 +28,4 @@ cada pull request deja un enlace de vista previa.
   "Botón atrás" en `forjar/index.html` como ejemplo.
 - Los datos del usuario no se deben perder: guardado local inmediato y, si hay cuenta, en la nube.
 - Pensado primero para celular (ancho 390 px), con modo oscuro.
+
