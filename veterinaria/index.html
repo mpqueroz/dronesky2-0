@@ -419,8 +419,8 @@ footer a:hover{color:#fff}
       <li><a href="#como-funciona">Cómo funciona</a></li>
       <li><a href="#sobre-mi">Sobre mí</a></li>
       <li><a href="#cobertura">Cobertura</a></li>
-      <li><a href="#preguntas">Preguntas</a></li>
-      <li><a href="#comunidad">Blog</a></li>
+      <li><a href="#preguntas">Dudas frecuentes</a></li>
+      <li class="nav-blog"><details class="nav-blog-menu"><summary>Blog</summary><ul class="nav-blog-options"><li><a href="#blog-noticias" data-community-link="news">Noticias</a></li><li><a href="#blog-videos" data-community-link="videos">Videos</a></li><li><a href="#blog-preguntas" data-community-link="answers">Preguntas y respuestas</a></li></ul></details></li>
       <li><a href="#agendar">Agendar</a></li>
     </ul>
     <a class="btn btn-wa nav-cta" href="https://wa.me/56977522182?text=Hola%20Dra.%20Garc%C3%A9s%2C%20quisiera%20agendar%20una%20visita%20a%20domicilio%20para%20mi%20mascota." target="_blank" rel="noopener">
@@ -702,9 +702,9 @@ footer a:hover{color:#fff}
       <h2 id="communityHeading">Noticias y consejos para tus mascotas</h2>
       <p class="community-intro">Novedades, videos y respuestas de la Dra. Delia Garcés.</p>
       <div class="community-tabs" aria-label="Contenido del blog">
-        <button type="button" data-community-tab="news" aria-pressed="true">Noticias</button>
-        <button type="button" data-community-tab="videos" aria-pressed="false">Videos</button>
-        <button type="button" data-community-tab="answers" aria-pressed="false">Preguntas respondidas</button>
+        <button type="button" id="blog-noticias" data-community-tab="news" aria-pressed="true">Noticias</button>
+        <button type="button" id="blog-videos" data-community-tab="videos" aria-pressed="false">Videos</button>
+        <button type="button" id="blog-preguntas" data-community-tab="answers" aria-pressed="false">Preguntas respondidas</button>
       </div>
       <p id="communityStatus" class="community-status" role="status"></p>
       <div id="communityGrid" class="community-grid"></div>
@@ -749,7 +749,7 @@ footer a:hover{color:#fff}
       </div>
       <div>
         <h4>Navegación</h4>
-        <ul><li><a href="#servicios">Servicios</a></li><li><a href="#como-funciona">Cómo funciona</a></li><li><a href="#sobre-mi">Sobre mí</a></li><li><a href="#agendar">Agendar</a></li></ul>
+        <ul><li><a href="#servicios">Servicios</a></li><li><a href="#como-funciona">Cómo funciona</a></li><li><a href="#sobre-mi">Sobre mí</a></li><li><a href="#blog-noticias" data-community-link="news">Noticias</a></li><li><a href="#blog-videos" data-community-link="videos">Videos</a></li><li><a href="#blog-preguntas" data-community-link="answers">Preguntas y respuestas</a></li><li><a href="#agendar">Agendar</a></li></ul>
       </div>
       <div>
         <h4>Contacto</h4>
@@ -789,7 +789,17 @@ footer a:hover{color:#fff}
   window.addEventListener('popstate',function(){if(links.classList.contains('open'))closeMenu()});
   links.addEventListener('click',function(e){
     var a=e.target.closest('a');
-    if(!a||!links.classList.contains('open'))return;
+    if(!a)return;
+    if(a.dataset.communityLink){
+      e.preventDefault();
+      var goBlog=function(){document.dispatchEvent(new CustomEvent('vet-community-nav',{detail:{tab:a.dataset.communityLink}}))};
+      var submenu=links.querySelector('.nav-blog-menu');if(submenu)submenu.open=false;
+      if(links.classList.contains('open')){
+        closeMenu();window.addEventListener('popstate',goBlog,{once:true});history.back();
+      }else{goBlog()}
+      return;
+    }
+    if(!links.classList.contains('open'))return;
     // Cierra el menú (y su entrada del historial) y luego baja a la sección.
     e.preventDefault();
     var target=document.querySelector(a.getAttribute('href'));

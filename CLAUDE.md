@@ -15,7 +15,8 @@ cada pull request deja un enlace de vista previa.
   - Usa Firestore y Storage con reglas en `docs/copygo-*.rules`. Configuración: `docs/copygo.md`.
   - `copygo/firebase-sdk.js` también es generado desde `tools/firebase-sdk/`.
 - `veterinaria/` → sitio `dra-garces-veterinaria` (página de la Dra. Delia Garcés, veterinaria a
-  domicilio). Agenda por WhatsApp; blog y panel `admin.html` con Firebase Authentication y Firestore.\n  Configuración, reglas e índices: `docs/veterinaria.md` y `docs/veterinaria-firestore.*`.
+  domicilio). Agenda por WhatsApp; blog y panel `admin.html` con Firebase Authentication y Firestore.
+  Configuración, reglas e índices: `docs/veterinaria.md` y `docs/veterinaria-firestore.*`.
 - Las cuentas se crean en la consola (Authentication → Usuarios): el proyecto no permite crear
   cuentas desde las páginas.
 

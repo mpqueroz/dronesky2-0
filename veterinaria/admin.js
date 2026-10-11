@@ -394,11 +394,21 @@ post.onsubmit = async (e) => {
     } catch {}
     closeEditor();
     await load();
-    feedback("Publicación guardada.");
-  } catch {
+    feedback(
+      e.submitter?.value === "publish"
+        ? "Publicación guardada y visible en el blog."
+        : "Borrador guardado. Solo aparece en el panel hasta que lo publiques.",
+    );
+  } catch (error) {
+    console.error(
+      "No se pudo guardar la publicación:",
+      error.code || error.message,
+    );
     message(
       $("postStatus"),
-      "No se pudo guardar. El borrador permanece en esta sesión.",
+      error.code === "permission-denied"
+        ? "No tienes permiso para guardar. Revisa que tu cuenta esté habilitada como administradora."
+        : "No se pudo guardar. El borrador permanece en esta sesión.",
       true,
     );
   } finally {

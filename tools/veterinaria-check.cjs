@@ -43,6 +43,10 @@ class Element {
   reset() {
     for (const e of Object.values(this.elements)) e.value = "";
   }
+  closest() {
+    return null;
+  }
+  scrollIntoView() {}
   querySelector() {
     return (this.button ||= new Element("button"));
   }
@@ -105,6 +109,7 @@ function setup(file) {
   };
   const context = {
     console,
+    location: { hash: "" },
     URL,
     Date,
     JSON,
@@ -118,7 +123,9 @@ function setup(file) {
     document: {
       getElementById: (id) => nodes[id],
       createElement: (tag) => new Element(tag),
-      querySelectorAll: () => tabs,
+      querySelectorAll: (selector) =>
+        selector === "[data-community-link]" ? [] : tabs,
+      addEventListener: () => {},
     },
     window: win,
   };
@@ -205,6 +212,10 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
       .replace(/^import[\s\S]*?;\n/gm, ""),
   );
   await tick();
+  publicUI.run("navigateBlog('videos')");
+  await tick();
+  assert.equal(publicUI.run("active"), "videos");
+  assert.equal(publicUI.nodes.communityMore.hidden, true);
   publicUI.nodes.questionForm.nombre.value = "Visitante";
   publicUI.nodes.questionForm.pregunta.value =
     "¿Qué vacunas necesita mi mascota?";

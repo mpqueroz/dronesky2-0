@@ -195,3 +195,61 @@
 .community-question p + p {
   margin-top: 16px;
 }
+
+/* Respetar hidden aunque el componente tenga display explícito. */
+[hidden] {
+  display: none !important;
+}
+.nav-blog-menu {
+  position: relative;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none !important;
+}
+.nav-blog-menu summary {
+  padding: 10px 14px;
+  font: 600 14.5px/1.6 var(--sans);
+  color: var(--muted);
+  gap: 10px;
+}
+.nav-blog-menu summary::after {
+  width: 7px;
+  height: 7px;
+  border-width: 2px;
+}
+.nav-blog-options {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 230px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 8px;
+  list-style: none;
+  box-shadow: var(--shadow-md);
+}
+.nav-blog-options a {
+  white-space: normal;
+}
+@media (max-width: 1100px) {
+  .nav-blog-menu summary {
+    padding: 14px 12px;
+    font-size: 16px;
+  }
+  .nav-blog-options {
+    position: static;
+    min-width: 0;
+    padding: 0 0 0 14px;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  .nav-links.open {
+    max-height: calc(100dvh - 76px);
+    overflow: auto;
+  }
+}

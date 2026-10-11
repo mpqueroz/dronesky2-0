@@ -14,12 +14,20 @@ const grid = document.getElementById("communityGrid"),
   status = document.getElementById("communityStatus"),
   more = document.getElementById("communityMore");
 const tabs = [...document.querySelectorAll("[data-community-tab]")];
-let active = "news",
+const blogHashes = {
+  news: "#blog-noticias",
+  videos: "#blog-videos",
+  answers: "#blog-preguntas",
+};
+const initialTab =
+  Object.keys(blogHashes).find((key) => blogHashes[key] === location.hash) ||
+  "news";
+let active = initialTab,
   cursor = null,
   loading = false,
   version = 0;
 history.replaceState({ vetBase: true }, "");
-history.pushState({ vetHome: true, tab: "news" }, "");
+history.pushState({ vetHome: true, tab: initialTab }, "");
 let lastBack = 0;
 const dialog = document.getElementById("articleDialog");
 function closeArticle() {
@@ -165,6 +173,8 @@ async function load(reset = true) {
     message(status, "");
   } catch (error) {
     if (requestVersion === version) {
+      more.hidden = true;
+      console.error("No se pudo cargar el blog:", error.code || error.message);
       message(
         status,
         "Esta sección todavía no está disponible. Intenta nuevamente más tarde.",
@@ -187,12 +197,34 @@ function selectTab(tab, push = true) {
   tabs.forEach((b) =>
     b.setAttribute("aria-pressed", String(b.dataset.communityTab === tab)),
   );
-  if (push) history.pushState({ tab }, "");
+  if (push) history.pushState({ tab }, "", blogHashes[tab]);
   load(true);
 }
 tabs.forEach(
   (button) => (button.onclick = () => selectTab(button.dataset.communityTab)),
 );
+function navigateBlog(tab) {
+  selectTab(tab);
+  document.getElementById("comunidad").scrollIntoView({ behavior: "smooth" });
+}
+document.addEventListener("vet-community-nav", (event) =>
+  navigateBlog(event.detail.tab),
+);
+for (const link of document.querySelectorAll("[data-community-link]")) {
+  if (link.closest("#navLinks")) continue;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    navigateBlog(link.dataset.communityLink);
+  });
+}
+tabs.forEach((b) =>
+  b.setAttribute("aria-pressed", String(b.dataset.communityTab === initialTab)),
+);
+if (
+  location.hash in
+  { "#blog-noticias": true, "#blog-videos": true, "#blog-preguntas": true }
+)
+  document.getElementById("comunidad").scrollIntoView();
 more.onclick = () => load(false);
 const form = document.getElementById("questionForm"),
   notice = document.getElementById("questionStatus");
