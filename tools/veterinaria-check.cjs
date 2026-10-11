@@ -90,26 +90,34 @@ function setup(file) {
     };
   const history = {
     state: null,
+    entries: [],
+    pushes: 0,
     replaceState(s) {
       this.state = s;
+      if (!this.entries.length) this.entries.push(s);
+      else this.entries[this.entries.length - 1] = s;
     },
     pushState(s) {
+      this.pushes++;
+      this.entries.push(s);
       this.state = s;
     },
     back() {
-      for (const fn of win.listeners.popstate || [])
-        fn({ state: { vetHome: true } });
+      this.entries.pop();
+      this.state = this.entries.at(-1) || { vetHome: true };
+      for (const fn of win.listeners.popstate || []) fn({ state: this.state });
     },
   };
   const win = {
     listeners: {},
+    scrollTo(options) { this.lastScroll = options; },
     addEventListener(k, fn) {
       (this.listeners[k] ||= []).push(fn);
     },
   };
   const context = {
     console,
-    location: { hash: "" },
+    location: { hash: "", pathname: "/", search: "" },
     URL,
     Date,
     JSON,
@@ -216,6 +224,18 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
   await tick();
   assert.equal(publicUI.run("active"), "videos");
   assert.equal(publicUI.nodes.communityMore.hidden, true);
+  const initialPushes = publicUI.context.history.pushes;
+  publicUI.run("navigateBlog('news'); navigateBlog('answers'); navigateBlog('videos')");
+  assert.equal(publicUI.context.history.pushes, initialPushes, "Las pestañas no acumulan historial");
+  publicUI.run("article({title:'Prueba',body:'Noticia de prueba'})");
+  publicUI.context.history.back();
+  assert.equal(publicUI.nodes.articleDialog.open, false, "Atrás cierra la noticia");
+  assert.equal(publicUI.run("active"), "videos");
+  publicUI.context.history.back();
+  assert.equal(publicUI.context.window.lastScroll.top, 0, "Atrás vuelve al inicio directamente");
+  assert.equal(publicUI.context.history.state.vetBase, true);
+  publicUI.run("navigateBlog('answers'); navigateBlog('news')");
+  assert.equal(publicUI.context.history.pushes, initialPushes + 2, "Se reutiliza un solo paso desde el inicio");
   publicUI.nodes.questionForm.nombre.value = "Visitante";
   publicUI.nodes.questionForm.pregunta.value =
     "¿Qué vacunas necesita mi mascota?";

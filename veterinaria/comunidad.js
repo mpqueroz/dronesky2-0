@@ -26,9 +26,17 @@ let active = initialTab,
   cursor = null,
   loading = false,
   version = 0;
-history.replaceState({ vetBase: true }, "");
-history.pushState({ vetHome: true, tab: initialTab }, "");
-let lastBack = 0;
+// Un solo paso separa las secciones del inicio; los cambios de pestaña lo reemplazan.
+history.scrollRestoration = "manual";
+const homeURL = location.pathname + location.search;
+const initialHash = location.hash;
+history.replaceState({ vetBase: true }, "", homeURL);
+history.pushState({ vetHome: true, tab: initialTab }, "", homeURL + initialHash);
+function sectionHistory(hash) {
+  const state = { vetHome: true, tab: active };
+  if (history.state?.vetBase) history.pushState(state, "", homeURL + hash);
+  else history.replaceState(state, "", homeURL + hash);
+}
 const dialog = document.getElementById("articleDialog");
 function closeArticle() {
   if (dialog.open) history.back();
@@ -39,20 +47,25 @@ dialog.addEventListener("cancel", (e) => {
   closeArticle();
 });
 window.addEventListener("popstate", (event) => {
-  if (event.state?.tab) selectTab(event.state.tab, false);
   if (dialog.open) {
     dialog.close();
     return;
   }
   if (event.state?.vetBase) {
-    if (Date.now() - lastBack < 2000) {
-      history.back();
-    } else {
-      lastBack = Date.now();
-      message(status, "Presiona atrás otra vez para salir.");
-      history.pushState({ vetHome: true, tab: "news" }, "");
-    }
-  }
+    selectTab("news", false);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  } else if (event.state?.tab) selectTab(event.state.tab, false);
+});
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("a[href^='#']");
+  if (!link || link.dataset.communityLink) return;
+  const hash = link.getAttribute("href");
+  if (hash === "#") return;
+  const target = document.querySelector(hash);
+  if (!target) return;
+  event.preventDefault();
+  sectionHistory(hash);
+  target.scrollIntoView({ behavior: "smooth" });
 });
 function article(post) {
   const content = document.getElementById("articleContent");
@@ -197,7 +210,7 @@ function selectTab(tab, push = true) {
   tabs.forEach((b) =>
     b.setAttribute("aria-pressed", String(b.dataset.communityTab === tab)),
   );
-  if (push) history.pushState({ tab }, "", blogHashes[tab]);
+  if (push) sectionHistory(blogHashes[tab]);
   load(true);
 }
 tabs.forEach(

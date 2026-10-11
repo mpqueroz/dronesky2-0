@@ -37,3 +37,7 @@ Las reglas e índices requieren activación en el proyecto real; las pruebas loc
 ## Pruebas locales
 
 Ejecutar `node tools/veterinaria-check.cjs` y `node --check veterinaria/admin.js` (también `comunidad.js` y `datos.js`). Las pruebas usan DOM y SDK simulados para comprobar autorización de la interfaz, borradores, URLs, separación de datos, publicación en lote y cierre de sesión. No verifican reglas reales ni la reproducción externa. La revisión con navegador quedó pendiente porque el entorno no pudo descargar Chromium.
+
+## Navegación pública
+
+Noticias, videos, respuestas y enlaces a secciones comparten un solo paso en el historial. Atrás cierra una noticia abierta o vuelve directamente al inicio de la página; una nueva pulsación desde el inicio permite salir normalmente. Abrir el menú no agrega pasos. La flecha translúcida aparece después de bajar 400 px y vuelve arriba sin modificar el historial, con movimiento reducido cuando el dispositivo lo solicita.
